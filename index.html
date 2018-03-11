@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Network Flow Simulator</title>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <link href="lib/css/vis.min.css" rel="stylesheet" type="text/css" />
+    <link href="lib/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+    <link href="style.css" rel="stylesheet" type="text/css" />
+
+    <script src="lib/js/vis.min.js"></script>
+    <script src="lib/js/jquery.min.js"></script>
+    <script src="lib/js/popper.min.js"></script>
+    <script src="lib/js/bootstrap.min.js"></script>
+    <script src="lib/js/fontawesome.js"></script>
+    <script src="core.js"></script>
+  </head>
+  <body onload="draw();">
+
+    <div class="container-fluid" style="padding: 0px">
+
+        <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+
+          <div class="container">
+
+            <a class="navbar-brand" href="#">Network Flow Simulator</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarColor01" aria-controls="navbarColor01" aria-expanded="false" aria-label="Toggle navigation">
+              <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarColor01">
+              <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                  <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
+                </li>
+              </ul>
+              <form class="form-inline my-2 my-lg-0">
+                <a href="#" class="navbar-brand">
+                  <i class="fab fa-github"></i>
+                  Source Code
+                </a>
+              </form>
+            </div>
+
+          </div>
+
+        </nav>
+
+        <br>
+
+        <div class="container">
+
+
+          <div class="row">
+            <div class="col-6">
+
+              <div class="box-apply">
+                <div class="apply">
+                  Insert path: <input type="text" id="ff"> <button OnClick="fordFulkerson(document.getElementById('ff').value)" class="btn btn-primary">Apply Ford Fulkerson</button>
+                </div>
+              </div>
+
+            </div>
+
+            <div class="col-6">
+
+              <div class="card border-primary mb-3" style="max-width: 20rem;">
+                <div class="card-header">Suggested paths</div>
+                <div class="card-body">
+                  <p class="card-text">
+                    - (s,a,b,t)     <button class="btn btn-xs btn-primary" OnClick="fordFulkerson('(s,a,b,t)')"><i class="fas fa-check"></i></button><br>
+                    - (s,a,d,t)     <button class="btn btn-xs btn-primary" OnClick="fordFulkerson('(s,a,d,t)')"><i class="fas fa-check"></i></button><br>
+                    - (s,c,b,a,d,t) <button class="btn btn-xs btn-primary" OnClick="fordFulkerson('(s,c,b,a,d,t)')"><i class="fas fa-check"></i></button><br>
+                    - (s,c,b,t)     <button class="btn btn-xs btn-primary" OnClick="fordFulkerson('(s,c,b,t)')"><i class="fas fa-check"></i></button><br>
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <h1>View</h1>
+          <div id="network">
+            <div class="vis-network" style="position: relative; overflow: hidden; touch-action: pan-y; -moz-user-select: none; width: 100%; height: 100%;" tabindex="900"><canvas style="position: relative; touch-action: none; -moz-user-select: none; width: 100%; height: 100%;" width="918" height="400"></canvas></div>
+          </div>
+
+        </div>
+
+    </div>
+
+    <!-- <table>
+      <tbody>
+        <tr>
+          <td>
+            <h2>Node</h2>
+            <table>
+              <tbody>
+                <tr>
+                  <td></td>
+                  <td><label for="node-id">Id</label></td>
+                  <td><input id="node-id" value="7" type="text"></td>
+                </tr>
+                <tr>
+                  <td></td>
+                  <td><label for="node-label">Label</label></td>
+                  <td><input id="node-label" value="Node 7" type="text"></td>
+                </tr>
+                <tr>
+                  <td></td>
+                  <td>Action</td>
+                  <td>
+                    <button id="node-add" OnClick="addNode(document.getElementById('node-id').value, document.getElementById('node-label').value);">Add</button>
+                    <button id="node-update" OnClick="updateNode(document.getElementById('node-id').value, document.getElementById('node-label').value);">Update</button>
+                    <button id="node-remove" OnClick="removeNode(document.getElementById('node-id').value);">Remove</button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </td>
+          <td>
+            <h2>Edge</h2>
+            <table>
+              <tbody>
+                <tr>
+                  <td></td>
+                  <td><label for="edge-id">Id</label></td>
+                  <td><input id="edge-id" value="6" type="text"></td>
+                </tr>
+                <tr>
+                  <td></td>
+                  <td><label for="edge-from">From</label></td>
+                  <td><input id="edge-from" value="5" type="text"></td>
+                </tr>
+                <tr>
+                  <td></td>
+                  <td><label for="edge-to">To</label></td>
+                  <td><input id="edge-to" value="7" type="text"></td>
+                </tr>
+                <tr>
+                  <td></td>
+                  <td>Action</td>
+                  <td>
+                    <button id="edge-add" OnClick="addEdge(document.getElementById('edge-id').value, document.getElementById('edge-from').value, document.getElementById('edge-to').value);">Add</button>
+                    <button id="edge-update" OnClick="updateEdge(document.getElementById('edge-id').value, document.getElementById('edge-from').value, document.getElementById('edge-to').value);">Update</button>
+                    <button id="edge-remove" OnClick="removeEdge(document.getElementById('edge-id').value);">Remove</button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </td>
+        </tr>
+      </tbody>
+    </table> -->
+
+  </body>
+
+</html>
