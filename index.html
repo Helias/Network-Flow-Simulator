@@ -59,6 +59,12 @@
               <div class="box-apply">
                 <div class="apply">
                   Insert path: <input type="text" id="ff"> <button OnClick="fordFulkerson(document.getElementById('ff').value)" class="btn btn-primary">Apply Ford Fulkerson</button>
+                  <br>
+                  <br>
+                  Max Flow: <b id="maxflow">0</b>
+                  <br>
+                  <br>
+                  <button class="btn btn-primary" OnClick="edmondsKarp()">Apply Edmonds-Karp</button>
                 </div>
               </div>
 
@@ -70,17 +76,16 @@
                 <div class="card-header">Suggested paths</div>
                 <div class="card-body">
                   <p class="card-text">
-                    - (s,a,b,t)     <button class="btn btn-xs btn-primary" OnClick="fordFulkerson('(s,a,b,t)')"><i class="fas fa-check"></i></button><br>
-                    - (s,a,d,t)     <button class="btn btn-xs btn-primary" OnClick="fordFulkerson('(s,a,d,t)')"><i class="fas fa-check"></i></button><br>
-                    - (s,c,b,a,d,t) <button class="btn btn-xs btn-primary" OnClick="fordFulkerson('(s,c,b,a,d,t)')"><i class="fas fa-check"></i></button><br>
-                    - (s,c,b,t)     <button class="btn btn-xs btn-primary" OnClick="fordFulkerson('(s,c,b,t)')"><i class="fas fa-check"></i></button><br>
+                    - (s,a,b,t)     <button class="btn btn-xs btn-primary" OnClick="fordFulkerson('(s,a,b,t)')" id="sabt"><i class="fas fa-arrow-circle-down"></i></button><br>
+                    - (s,a,d,t)     <button class="btn btn-xs btn-primary" OnClick="fordFulkerson('(s,a,d,t)')" id="sadt"><i class="fas fa-arrow-circle-down"></i></button><br>
+                    - (s,c,b,a,d,t) <button class="btn btn-xs btn-primary" OnClick="fordFulkerson('(s,c,b,a,d,t)')" id="scbadt"><i class="fas fa-arrow-circle-down"></i></button><br>
+                    - (s,c,b,t)     <button class="btn btn-xs btn-primary" OnClick="fordFulkerson('(s,c,b,t)')" id="scbt"><i class="fas fa-arrow-circle-down"></i></button><br>
                   </p>
                 </div>
               </div>
             </div>
           </div>
 
-          <h1>View</h1>
           <div id="network">
             <div class="vis-network" style="position: relative; overflow: hidden; touch-action: pan-y; -moz-user-select: none; width: 100%; height: 100%;" tabindex="900"><canvas style="position: relative; touch-action: none; -moz-user-select: none; width: 100%; height: 100%;" width="918" height="400"></canvas></div>
           </div>

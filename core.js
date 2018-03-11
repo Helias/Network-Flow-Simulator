@@ -1,4 +1,4 @@
-var nodes, edges, network;
+var nodes, edges, network, max_flow = 0;
 
 // convenience method to stringify a JSON object
 function toJSON(obj) {
@@ -98,23 +98,16 @@ function draw() {
   // });
 
   edges.add([
-    { id: "0", flow:0, from:"s", to:"a", arrows: "to", capacity:20, "c":20, label:"0/20" },
-    { id: "1", flow:0, from:"s", to:"c", arrows: "to", capacity:30, "c":30, label:"0/30" },
-    { id: "2", flow:0, from:"a", to:"b", arrows: "to", capacity:10, "c":10, label:"0/10" },
-    { id: "3", flow:0, from:"a", to:"d", arrows: "to", capacity:20, "c":20, label:"0/20" },
-    { id: "4", flow:0, from:"b", to:"t", arrows: "to", capacity:15, "c":15, label:"0/15" },
-    { id: "5", flow:0, from:"c", to:"b", arrows: "to", capacity:20, "c":20, label:"0/20" },
-    { id: "6", flow:0, from:"d", to:"t", arrows: "to", capacity:30, "c":30, label:"0/30" }
+    { id: "0", flow:0, from:"s", to:"a", arrows: "to", capacity:20, c:20, label:"0/20", visited:false },
+    { id: "1", flow:0, from:"s", to:"c", arrows: "to", capacity:30, c:30, label:"0/30", visited:false },
+    { id: "2", flow:0, from:"a", to:"b", arrows: "to", capacity:10, c:10, label:"0/10", visited:false },
+    { id: "3", flow:0, from:"a", to:"d", arrows: "to", capacity:20, c:20, label:"0/20", visited:false },
+    { id: "4", flow:0, from:"b", to:"t", arrows: "to", capacity:15, c:15, label:"0/15", visited:false },
+    { id: "5", flow:0, from:"c", to:"b", arrows: "to", capacity:20, c:20, label:"0/20", visited:false },
+    { id: "6", flow:0, from:"d", to:"t", arrows: "to", capacity:30, c:30, label:"0/30", visited:false }
   ]);
 
-  // edges.add([
-  //   { id: '1', from: '1', to: '2', label:"1/2" },
-  //   { id: '2', from: '1', to: '3' },
-  //   { id: '3', from: '2', to: '4' },
-  //   { id: '4', from: '2', to: '5' }
-  // ]);
-
-  console.log(edges._data);
+  // console.log(edges._data);
 
   // create a network
   var container = document.getElementById('network');
@@ -129,14 +122,19 @@ function draw() {
 
 function fordFulkerson(input) {
 
+  // update label button
+  var str = input.replace("(", "");
+  str = str.replace(")", "");
+  str = str.replace(/,/g, "");
+  if (document.getElementById(str) != null)
+    document.getElementById(str).innerHTML = '<i class="fas fa-check"></i>';
+
   var _edges = edges._data;
 
   // parsing input
   input = input.replace("(", "");
   input = input.replace(")", "");
   var order = input.split(",");
-
-  console.log(order);
 
   var minCut = Number.MAX_VALUE;
   var condition_flow = false;
@@ -171,6 +169,9 @@ function fordFulkerson(input) {
     }
   }
 
+  max_flow += minCut;
+  document.getElementById("maxflow").innerHTML = max_flow;
+
   // update labels
   for (var i in _edges) {
     _edges[i].label = _edges[i].flow + "/" + _edges[i].c;
@@ -185,6 +186,12 @@ function fordFulkerson(input) {
       alert(err);
     }
   }
+}
+
+function edmondsKarp() {
+  var _edges = edges._data;
+
+  
 }
 
 // setTimeout(function() {
