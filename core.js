@@ -1,9 +1,9 @@
-var nodes, edges, network, max_flow = 0;
+var nodes, edges, network, max_flow = 0, edges_dst = {};
 
 // convenience method to stringify a JSON object
-function toJSON(obj) {
-  return JSON.stringify(obj, null, 4);
-}
+// function toJSON(obj) {
+//   return JSON.stringify(obj, null, 4);
+// }
 
 function addNode(_id, _label) {
   try {
@@ -186,17 +186,90 @@ function fordFulkerson(input) {
       alert(err);
     }
   }
+
+  // update_edges_dst();
+}
+
+// recursive function
+function findPath(current_path, current_node, current_capacity) {
+
+  if (current_node == "t")
+    return { capacity: current_capacity, node: current_node, path: current_path };
+
+  var compare_paths = new Array(edges_dst[current_node].length);
+  var c_path, c_capacity;
+
+  var tmp_c = Number.MAX_VALUE;
+  var tmp_index = 0;
+
+  for (let i in edges_dst[current_node]) {
+
+    c_path = current_path + "," + edges_dst[current_node][i].to;
+    c_capacity = current_capacity + edges_dst[current_node][i].capacity;
+
+    if (edges_dst[current_node][i].flow != edges_dst[current_node][i].c) {
+
+      let obj = findPath(c_path, edges_dst[current_node][i].to, c_capacity);
+
+      if (obj != null) {
+        compare_paths[i] = obj;
+
+        if (tmp_c > compare_paths[i].capacity) {
+          tmp_c = compare_paths[i].capacity;
+          tmp_index = i;
+        }
+      }
+    }
+
+  }
+
+  if (compare_paths[tmp_index] != null)
+    return compare_paths[tmp_index];
+}
+
+function update_edges_dst() {
+  console.log(edges._data);
+  var _edges = edges._data;
+
+  for (var i in _edges) {
+    if (_edges[i].flow > 0 && edges_dst[_edges[i].to]) {
+
+      var flag = false;
+      for (var j in edges_dst[_edges[i].to]) {
+        if (edges_dst[_edges[i].to][j].to == _edges[i].to && edges_dst[_edges[i].to][j].from == _edges[i].from) {
+          flag = true;
+          break;
+        }
+      }
+
+      if (!flag) {
+        edges_dst[_edges[i].to].push({
+          from: _edges[i].to,
+          to: _edges[i].from,
+          capacity: _edges[i].flow,
+          flow: 0,
+          c: _edges[i].c,
+        });
+      }
+
+    }
+  }
 }
 
 function edmondsKarp() {
   var _edges = edges._data;
 
-  
-}
+  for (var i in _edges) {
 
-// setTimeout(function() {
-//   fordFulkerson("(s,a,b,t)");
-//   fordFulkerson("(s,a,d,t)");
-//   fordFulkerson("(s,c,b,a,d,t)");
-//   fordFulkerson("(s,c,b,t)");
-// }, 1000);
+    if (edges_dst[_edges[i].from] == null)
+      edges_dst[_edges[i].from] = [];
+
+    edges_dst[_edges[i].from].push(_edges[i]);
+  }
+
+  var paths;
+  while (paths = findPath("s", "s", 0)) {
+    findPath("s", "s", 0);
+    fordFulkerson(paths.path);
+  }
+}
