@@ -1,9 +1,21 @@
-var nodes, edges, network, max_flow = 0, edges_dst = {};
+var nodes, edges, network, max_flow = 0, edges_dst = {}, step = false;
 
 // convenience method to stringify a JSON object
 // function toJSON(obj) {
 //   return JSON.stringify(obj, null, 4);
 // }
+
+$(document).ready(function() {
+  $("#back").hide();
+  $("#next").hide();
+});
+
+function ifStep() {
+  step = !step;
+
+  $("#back").toggle();
+  $("#next").toggle();
+}
 
 function addNode(_id, _label) {
   try {
