@@ -33,7 +33,7 @@
             <div class="collapse navbar-collapse" id="navbarColor01">
               <ul class="navbar-nav mr-auto">
                 <li class="nav-item active">
-                  <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
+                  <!-- <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a> -->
                 </li>
               </ul>
               <form class="form-inline my-2 my-lg-0">
@@ -91,17 +91,20 @@
             <div class="col-12">
               <div class="text-center">
                 <label>
-                  <input type="checkbox" OnChange="ifStep()"> Step by step
+                  <input type="checkbox" id="stepbystep" OnChange="ifStep()"> Step by step
                 </label>
 
                 <br>
 
-                <button class="btn btn-info" id="back">Back</button>
-                <button class="btn btn-primary" id="next">Next</button>
+                <!-- <button class="btn btn-info" id="back">Back</button> -->
+                <button class="btn btn-primary" id="next" OnClick="fordFulkerson(current_input)">Next</button>
 
                 <br>
                 <br>
 
+                <h2 id="c_p"></h2>
+
+                <br>
               </div>
             </div>
           </div>

@@ -1,4 +1,7 @@
-var nodes, edges, network, max_flow = 0, edges_dst = {}, step = false;
+var nodes, edges, network, max_flow = 0, edges_dst = {};
+
+// steps variables
+var step = false, steps = 0, start = true, current_input, tmp_i = 0, tmp_j = 0;
 
 // convenience method to stringify a JSON object
 // function toJSON(obj) {
@@ -6,8 +9,17 @@ var nodes, edges, network, max_flow = 0, edges_dst = {}, step = false;
 // }
 
 $(document).ready(function() {
-  $("#back").hide();
-  $("#next").hide();
+
+  if ($("#stepbystep").is(':checked')) {
+    $("#back").show();
+    $("#next").show();
+    step = true;
+  }
+  else {
+    $("#back").hide();
+    $("#next").hide();
+  }
+
 });
 
 function ifStep() {
@@ -134,72 +146,121 @@ function draw() {
 
 function fordFulkerson(input) {
 
-  // update label button
+  current_input = input;
+
   var str = input.replace("(", "");
   str = str.replace(")", "");
   str = str.replace(/,/g, "");
-  if (document.getElementById(str) != null)
-    document.getElementById(str).innerHTML = '<i class="fas fa-check"></i>';
-
-  var _edges = edges._data;
 
   // parsing input
   input = input.replace("(", "");
   input = input.replace(")", "");
   var order = input.split(",");
 
-  var minCut = Number.MAX_VALUE;
-  var condition_flow = false;
+  console.log(step);
+  console.log(steps);
 
-  for (var i = 0; i < order.length-1; i++) {
-    for (var j in _edges) {
+  if (start) {
+    $("#c_p").html(input);
 
-      condition_flow = (_edges[j].flow > 0 && _edges[j].to == order[i] && _edges[j].from == order[i+1]);
+    // update label button
+    if (document.getElementById(str) != null)
+      document.getElementById(str).innerHTML = '<i class="fas fa-check"></i>';
 
-      if ((_edges[j].from == order[i] && _edges[j].to == order[i+1]) || condition_flow) {
+    var _edges = edges._data;
 
-        if (condition_flow)
-          minCut = Math.min(minCut, _edges[j].flow);
-        else
-          minCut = Math.min(minCut, _edges[j].capacity);
+    var minCut = Number.MAX_VALUE;
+    var condition_flow = false;
 
-        break;
+    // Search minCut
+    for (var i = 0; i < order.length-1; i++) {
+      for (var j in _edges) {
+
+        condition_flow = (_edges[j].flow > 0 && _edges[j].to == order[i] && _edges[j].from == order[i+1]);
+
+        if ((_edges[j].from == order[i] && _edges[j].to == order[i+1]) || condition_flow) {
+
+          if (condition_flow)
+            minCut = Math.min(minCut, _edges[j].flow);
+          else
+            minCut = Math.min(minCut, _edges[j].capacity);
+
+          break;
+        }
       }
     }
+
+    // console.log(minCut);
+
+    max_flow += minCut;
+    document.getElementById("maxflow").innerHTML = max_flow;
+
+    start = false;
   }
 
-  // console.log(minCut);
-
-  for (var i = 0; i < order.length-1; i++) {
-    for (var j in _edges) {
-
-      if ((_edges[j].from == order[i] && _edges[j].to == order[i+1]) || (_edges[j].flow > 0 && _edges[j].capacity <= 0 && _edges[j].to == order[i] && _edges[j].from == order[i+1])) {
-        _edges[j].capacity -= minCut;
-        _edges[j].flow += minCut;
-        break;
-      }
-    }
-  }
-
-  max_flow += minCut;
-  document.getElementById("maxflow").innerHTML = max_flow;
-
-  // update labels
-  for (var i in _edges) {
-    _edges[i].label = _edges[i].flow + "/" + _edges[i].c;
-    try {
-      edges.update({
-        id: _edges[i].id,
-        from: _edges[i].from,
-        to: _edges[i].to,
-        label: _edges[i].label
-      });
-    } catch (err) {
-      alert(err);
-    }
-  }
+  if (step)
+    apply_minCut(_edges, order, minCut, true);
+  else
+    apply_minCut(_edges, order, minCut);
 
   // update_edges_dst();
+}
+
+function apply_minCut(_edges, order, minCut, if_step) {
+
+  // var tmp = 0;
+
+  console.log("STEPS: " + steps);
+
+  var i = 0;
+  var j = 0;
+
+  if (step) {
+    i = tmp_i;
+  }
+
+  for (; i < order.length-1; i++) {
+    for (j in _edges) {
+
+      if ((_edges[j].from == order[i] && _edges[j].to == order[i+1]) || (_edges[j].flow > 0 && _edges[j].capacity <= 0 && _edges[j].to == order[i] && _edges[j].from == order[i+1])) {
+
+        tmp_i = i+1;
+        // tmp_j = j;
+
+        // if (step && tmp < steps)
+        //   tmp++;
+        // else {
+
+          _edges[j].capacity -= minCut;
+          _edges[j].flow += minCut;
+
+          // update labels
+          _edges[j].label = _edges[j].flow + "/" + _edges[j].c;
+          try {
+            edges.update({
+              id: _edges[j].id,
+              from: _edges[j].from,
+              to: _edges[j].to,
+              label: _edges[j].label
+            });
+          } catch (err) {
+            alert(err);
+          }
+
+          if (if_step) {
+            steps++;
+            return steps;
+          }
+
+          break;
+        // }
+      }
+
+    }
+  }
+
+  start = true;
+  return 0; // finished
 }
 
 // recursive function
