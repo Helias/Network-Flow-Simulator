@@ -101,6 +101,10 @@ function draw() {
   // create an array with nodes
   nodes = new vis.DataSet();
 
+  // nodes.on('*', function() {
+  //   document.getElementById('nodes').innerHTML = JSON.stringify(nodes.get(), null, 4);
+  // });
+
   nodes.add([
     { id: 's', label: 'S' /*, color: { background: "#54b4eb" }, font: { color: "#fff" }*/ },
     { id: 'a', label: 'A'},
@@ -113,14 +117,18 @@ function draw() {
   // create an array with edges
   edges = new vis.DataSet();
 
+  // edges.on('*', function() {
+  //   document.getElementById('edges').innerHTML = JSON.stringify(edges.get(), null, 4);
+  // });
+
   edges.add([
-    { id: "0", flow:0, from:"s", to:"a", arrows: "to", capacity:20, c:20, label:"0/20", visited:false, bidirectional: false },
-    { id: "1", flow:0, from:"s", to:"c", arrows: "to", capacity:30, c:30, label:"0/30", visited:false, bidirectional: false },
-    { id: "2", flow:0, from:"a", to:"b", arrows: "to", capacity:10, c:10, label:"0/10", visited:false, bidirectional: false },
-    { id: "3", flow:0, from:"a", to:"d", arrows: "to", capacity:20, c:20, label:"0/20", visited:false, bidirectional: false },
-    { id: "4", flow:0, from:"b", to:"t", arrows: "to", capacity:15, c:15, label:"0/15", visited:false, bidirectional: false },
-    { id: "5", flow:0, from:"c", to:"b", arrows: "to", capacity:20, c:20, label:"0/20", visited:false, bidirectional: false },
-    { id: "6", flow:0, from:"d", to:"t", arrows: "to", capacity:30, c:30, label:"0/30", visited:false, bidirectional: false }
+    { id: "0", flow:0, from:"s", to:"a", arrows: "to", capacity:20, c:20, label:"0/20", visited:false },
+    { id: "1", flow:0, from:"s", to:"c", arrows: "to", capacity:30, c:30, label:"0/30", visited:false },
+    { id: "2", flow:0, from:"a", to:"b", arrows: "to", capacity:10, c:10, label:"0/10", visited:false },
+    { id: "3", flow:0, from:"a", to:"d", arrows: "to", capacity:20, c:20, label:"0/20", visited:false },
+    { id: "4", flow:0, from:"b", to:"t", arrows: "to", capacity:15, c:15, label:"0/15", visited:false },
+    { id: "5", flow:0, from:"c", to:"b", arrows: "to", capacity:20, c:20, label:"0/20", visited:false },
+    { id: "6", flow:0, from:"d", to:"t", arrows: "to", capacity:30, c:30, label:"0/30", visited:false }
   ]);
 
   // console.log(edges._data);
@@ -169,12 +177,6 @@ function fordFulkerson(input) {
       for (var j in _edges) {
 
         condition_flow = (_edges[j].flow > 0 && _edges[j].to == order[i] && _edges[j].from == order[i+1]);
-        /*
-        * A,B
-        * A -> B
-        * (A,B).flow > 0   =>  A <- B
-        * 
-        */
 
         if ((_edges[j].from == order[i] && _edges[j].to == order[i+1]) || condition_flow) {
 
@@ -185,7 +187,6 @@ function fordFulkerson(input) {
 
           break;
         }
-
       }
     }
 
@@ -203,15 +204,13 @@ function fordFulkerson(input) {
     apply_minCut(_edges, order, minCut);
 
   // update_edges_dst();
-
-  console.log(edges);
 }
 
 function apply_minCut(_edges, order, minCut, if_step) {
 
   // var tmp = 0;
 
-  // console.log("STEPS: " + steps);
+  console.log("STEPS: " + steps);
 
   var i = 0;
   var j = 0;
