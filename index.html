@@ -59,7 +59,7 @@
 
               <div class="box-apply">
                 <div class="apply">
-                  Insert path: <input type="text" id="ff"> <button OnClick="fordFulkerson(document.getElementById('ff').value)" class="btn btn-primary">Apply Ford Fulkerson</button>
+                  Insert path: <input type="text" id="ff"> <button OnClick="applyPath(document.getElementById('ff').value)" class="btn btn-primary">Apply Ford Fulkerson</button>
                   <br>
                   <br>
                   Max Flow: <b id="maxflow">0</b>
@@ -77,10 +77,10 @@
                 <div class="card-header">Suggested paths</div>
                 <div class="card-body">
                   <p class="card-text">
-                    - (s,a,b,t)     <button class="btn btn-xs btn-primary" OnClick="fordFulkerson('(s,a,b,t)')" id="sabt"><i class="fas fa-arrow-circle-down"></i></button><br>
-                    - (s,a,d,t)     <button class="btn btn-xs btn-primary" OnClick="fordFulkerson('(s,a,d,t)')" id="sadt"><i class="fas fa-arrow-circle-down"></i></button><br>
-                    - (s,c,b,a,d,t) <button class="btn btn-xs btn-primary" OnClick="fordFulkerson('(s,c,b,a,d,t)')" id="scbadt"><i class="fas fa-arrow-circle-down"></i></button><br>
-                    - (s,c,b,t)     <button class="btn btn-xs btn-primary" OnClick="fordFulkerson('(s,c,b,t)')" id="scbt"><i class="fas fa-arrow-circle-down"></i></button><br>
+                    - (s,a,b,t)     <button class="btn btn-xs btn-primary" OnClick="applyPath('(s,a,b,t)')" id="sabt"><i class="fas fa-arrow-circle-down"></i></button><br>
+                    - (s,a,d,t)     <button class="btn btn-xs btn-primary" OnClick="applyPath('(s,a,d,t)')" id="sadt"><i class="fas fa-arrow-circle-down"></i></button><br>
+                    - (s,c,b,a,d,t) <button class="btn btn-xs btn-primary" OnClick="applyPath('(s,c,b,a,d,t)')" id="scbadt"><i class="fas fa-arrow-circle-down"></i></button><br>
+                    - (s,c,b,t)     <button class="btn btn-xs btn-primary" OnClick="applyPath('(s,c,b,t)')" id="scbt"><i class="fas fa-arrow-circle-down"></i></button><br>
                   </p>
                 </div>
               </div>
