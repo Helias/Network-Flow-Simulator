@@ -1,5 +1,7 @@
-var nodes, edges, network, max_flow = 0, paths = [], steps = [], step = false;
-var edges_ref = {};
+var nodes, edges, network, max_flow = 0, paths = [], edges_ref = {}, path = [];
+
+// steps variables
+var steps = [], step = false, idx_steps = 0;
 
 // convenience method to stringify a JSON object
 // function toJSON(obj) {
@@ -8,33 +10,21 @@ var edges_ref = {};
 
 $(document).ready(function() {
 
-  if ($("#stepbystep").is(':checked')) {
-    $("#back").show();
-    $("#next").show();
-    step = true;
-  }
-  else {
+  if (!$("#stepbystep").is(':checked')) {
     $("#back").hide();
     $("#next").hide();
   }
 
   draw();
-  paths = get_edges("s", "t");
+  paths = getEdges("s", "t");
 });
-
-function ifStep() {
-  step = !step;
-
-  $("#back").toggle();
-  $("#next").toggle();
-}
 
 function draw() {
   // create an array with nodes
   nodes = new vis.DataSet();
 
   nodes.add([
-    { id: 's', label: 'S' /*, color: { background: "#54b4eb" }, font: { color: "#fff" }*/ },
+    { id: 's', label: 'S'/*, color: { background: "#54b4eb" }, font: { color: "#fff" } */},
     { id: 'a', label: 'A'},
     { id: 'b', label: 'B'},
     { id: 'c', label: 'C'},
@@ -47,13 +37,13 @@ function draw() {
   edges = new vis.DataSet();
 
   edges.add([
-    { id: "0", from:"s", to:"a", arrows: "to", capacity:20, fill_capacity:0, label:"0/20", visited:false },
-    { id: "1", from:"s", to:"c", arrows: "to", capacity:30, fill_capacity:0, label:"0/30", visited:false },
-    { id: "2", from:"a", to:"b", arrows: "to", capacity:10, fill_capacity:0, label:"0/10", visited:false },
-    { id: "3", from:"a", to:"d", arrows: "to", capacity:20, fill_capacity:0, label:"0/20", visited:false },
-    { id: "4", from:"b", to:"t", arrows: "to", capacity:15, fill_capacity:0, label:"0/15", visited:false },
-    { id: "5", from:"c", to:"b", arrows: "to", capacity:20, fill_capacity:0, label:"0/20", visited:false },
-    { id: "6", from:"d", to:"t", arrows: "to", capacity:30, fill_capacity:0, label:"0/30", visited:false },
+    { id: "0", from:"s", to:"a", arrows: "to", capacity:20, fill_capacity:0, label:"0/20", color: { color: "#2b7ce9" } },
+    { id: "1", from:"s", to:"c", arrows: "to", capacity:30, fill_capacity:0, label:"0/30", color: { color: "#2b7ce9" } },
+    { id: "2", from:"a", to:"b", arrows: "to", capacity:10, fill_capacity:0, label:"0/10", color: { color: "#2b7ce9" } },
+    { id: "3", from:"a", to:"d", arrows: "to", capacity:20, fill_capacity:0, label:"0/20", color: { color: "#2b7ce9" } },
+    { id: "4", from:"b", to:"t", arrows: "to", capacity:15, fill_capacity:0, label:"0/15", color: { color: "#2b7ce9" } },
+    { id: "5", from:"c", to:"b", arrows: "to", capacity:20, fill_capacity:0, label:"0/20", color: { color: "#2b7ce9" } },
+    { id: "6", from:"d", to:"t", arrows: "to", capacity:30, fill_capacity:0, label:"0/30", color: { color: "#2b7ce9" } },
     // { id: "7", from:"c", to:"x", arrows: "to", flow:0, capacity:30, fill_capacity:0, c:30, label:"0/30", visited:false },
     // { id: "8", from:"x", to:"t", arrows: "to", flow:0, capacity:30, fill_capacity:0, c:30, label:"0/30", visited:false }
   ]);
@@ -68,7 +58,6 @@ function draw() {
   };
   var options = {};
   network = new vis.Network(container, data, options);
-
 }
 
 // dfs recursive
@@ -108,7 +97,7 @@ function get_path(input) {
     return "";
 }
 
-function get_edges(s, t) {
+function getEdges(s, t) {
 
   var _edges = edges._data;
 
@@ -151,28 +140,40 @@ function getMaxFlow(path) {
   return maxFlow;
 }
 
-function edges_by_steps() {
-  console.log(steps);
-  // try {
-  //   edges.update({
-  //     id: _edges[j].id,
-  //     from: _edges[j].from,
-  //     to: _edges[j].to,
-  //     label: _edges[j].label
-  //   });
-  // } catch (err) {
-  //   alert(err);
-  // }
+function updateEdges(graph) {
+  for (var i in graph) {
+
+    var c = "#2b7ce9";
+
+    if (graph[i].from == path[idx_steps-1] && graph[i].to == path[idx_steps])
+      c = "#dd2c00";
+
+    try {
+      edges.update({
+        id: graph[i].id,
+        from: graph[i].from,
+        to: graph[i].to,
+        label: graph[i].label,
+        color: { color: c }
+      });
+    } catch (err) {
+      alert(err);
+    }
+  }
 }
 
 function applyPath(input) {
+  if ($("#stepbystep").is(':checked')) {
+    $("#next").show();
+    step = true;
+  }
 
   // parsing input
   input = input.replace("(", "");
   input = input.replace(")", "");
   input = input.replace(/ /g, "");
 
-  var path = input.split(",");
+  path = input.split(",");
 
   // checking if the path exists
   var available = false;
@@ -192,6 +193,9 @@ function applyPath(input) {
   var _edges = edges._data;
 
   $("#c_p").html(input + " " + "(" + maxFlow + ")");
+
+  if (step)
+    steps.push(jQuery.extend(true, {}, _edges));
 
   for (var i = 0; i < path.length-1; i++) {
     for (var j in _edges) {
@@ -221,9 +225,30 @@ function applyPath(input) {
     }
   }
 
-  if (step)
-    edges_by_steps();
-
   max_flow += maxFlow;
   document.getElementById("maxflow").innerHTML = max_flow;
+}
+
+function next() {
+  idx_steps++;
+
+  updateEdges(steps[idx_steps]);
+
+  if (idx_steps > 0)
+    $("#back").show();
+
+  if (idx_steps == steps.length-1)
+    $("#next").hide();
+}
+
+function back() {
+  idx_steps--;
+
+  if (idx_steps == 0)
+    $("#back").hide();
+
+  if (idx_steps < steps.length)
+    $("#next").show();
+
+  updateEdges(steps[idx_steps]);
 }
