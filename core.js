@@ -1,7 +1,7 @@
-var nodes, edges, network, max_flow = 0, edges_dst = {};
+var nodes, edges, network, max_flow = 0, paths = [], edges_ref = {}, path = [];
 
 // steps variables
-var step = false, steps = 0, start = true, current_input, tmp_i = 0, tmp_j = 0;
+var steps = [], step = false, idx_steps = 0;
 
 // convenience method to stringify a JSON object
 // function toJSON(obj) {
@@ -10,117 +10,45 @@ var step = false, steps = 0, start = true, current_input, tmp_i = 0, tmp_j = 0;
 
 $(document).ready(function() {
 
-  if ($("#stepbystep").is(':checked')) {
-    $("#back").show();
-    $("#next").show();
-    step = true;
-  }
-  else {
-    $("#back").hide();
-    $("#next").hide();
-  }
+  $("#c_p").hide();
+  $("#error").hide();
 
+  $("#start").hide();
+  $("#back").hide();
+  $("#next").hide();
+  $("#finish").hide();
+
+  draw();
+  paths = getEdges("s", "t");
 });
-
-function ifStep() {
-  step = !step;
-
-  $("#back").toggle();
-  $("#next").toggle();
-}
-
-function addNode(_id, _label) {
-  try {
-    nodes.add({
-      id: _id,
-      label: _label
-    });
-  } catch (err) {
-    alert(err);
-  }
-}
-
-function updateNode(_id, _label) {
-  try {
-    nodes.update({
-      id: _id,
-      label: _label
-    });
-  } catch (err) {
-    alert(err);
-  }
-}
-
-function removeNode(_id) {
-  try {
-    nodes.remove({
-      id: _id
-    });
-  } catch (err) {
-    alert(err);
-  }
-}
-
-function addEdge(_id, _from, _to) {
-  try {
-    edges.add({
-      id: _id,
-      from: _from,
-      to: _to,
-      arrows: "to"
-    });
-  } catch (err) {
-    alert(err);
-  }
-}
-
-function updateEdge(_id, _from, _to, _arrows) {
-  try {
-    edges.update({
-      id: _id,
-      from: _from,
-      to: _to,
-      arrows: _arrows != null ? arrows : "to"
-    });
-  } catch (err) {
-    alert(err);
-  }
-}
-
-function removeEdge(_id) {
-  try {
-    edges.remove({
-      id: _id
-    });
-  } catch (err) {
-    alert(err);
-  }
-}
 
 function draw() {
   // create an array with nodes
   nodes = new vis.DataSet();
 
   nodes.add([
-    { id: 's', label: 'S' /*, color: { background: "#54b4eb" }, font: { color: "#fff" }*/ },
+    { id: 's', label: 'S'/*, color: { background: "#54b4eb" }, font: { color: "#fff" } */},
     { id: 'a', label: 'A'},
     { id: 'b', label: 'B'},
     { id: 'c', label: 'C'},
     { id: 'd', label: 'D'},
     { id: 't', label: 'T'},
+    // { id: 'x', label: 'X'},
   ]);
 
   // create an array with edges
   edges = new vis.DataSet();
 
   edges.add([
-    { id: "0", flow:0, from:"s", to:"a", arrows: "to", capacity:20, c:20, label:"0/20", visited:false, bidirectional: false },
-    { id: "1", flow:0, from:"s", to:"c", arrows: "to", capacity:30, c:30, label:"0/30", visited:false, bidirectional: false },
-    { id: "2", flow:0, from:"a", to:"b", arrows: "to", capacity:10, c:10, label:"0/10", visited:false, bidirectional: false },
-    { id: "3", flow:0, from:"a", to:"d", arrows: "to", capacity:20, c:20, label:"0/20", visited:false, bidirectional: false },
-    { id: "4", flow:0, from:"b", to:"t", arrows: "to", capacity:15, c:15, label:"0/15", visited:false, bidirectional: false },
-    { id: "5", flow:0, from:"c", to:"b", arrows: "to", capacity:20, c:20, label:"0/20", visited:false, bidirectional: false },
-    { id: "6", flow:0, from:"d", to:"t", arrows: "to", capacity:30, c:30, label:"0/30", visited:false, bidirectional: false }
+    { id: "0", from:"s", to:"a", arrows: "to", capacity:20, fill_capacity:0, label:"0/20", color: { color: "#2b7ce9" } },
+    { id: "1", from:"s", to:"c", arrows: "to", capacity:30, fill_capacity:0, label:"0/30", color: { color: "#2b7ce9" } },
+    { id: "2", from:"a", to:"b", arrows: "to", capacity:10, fill_capacity:0, label:"0/10", color: { color: "#2b7ce9" } },
+    { id: "3", from:"a", to:"d", arrows: "to", capacity:20, fill_capacity:0, label:"0/20", color: { color: "#2b7ce9" } },
+    { id: "4", from:"b", to:"t", arrows: "to", capacity:15, fill_capacity:0, label:"0/15", color: { color: "#2b7ce9" } },
+    { id: "5", from:"c", to:"b", arrows: "to", capacity:20, fill_capacity:0, label:"0/20", color: { color: "#2b7ce9" } },
+    { id: "6", from:"d", to:"t", arrows: "to", capacity:30, fill_capacity:0, label:"0/30", color: { color: "#2b7ce9" } },
+    // { id: "7", from:"c", to:"x", arrows: "to", flow:0, capacity:30, fill_capacity:0, c:30, label:"0/30", visited:false },
+    // { id: "8", from:"x", to:"t", arrows: "to", flow:0, capacity:30, fill_capacity:0, c:30, label:"0/30", visited:false }
   ]);
 
   // console.log(edges._data);
@@ -133,217 +61,259 @@ function draw() {
   };
   var options = {};
   network = new vis.Network(container, data, options);
-
 }
 
-function fordFulkerson(input) {
+// dfs recursive
+function get_path(input) {
+  var res = "";
 
-  current_input = input;
+  if (edges_ref[input].to != null) {
 
-  var str = input.replace("(", "");
-  str = str.replace(")", "");
-  str = str.replace(/,/g, "");
+    if (edges_ref[input].to.length > 1) {
 
+      var multi = [];
+
+      for (var i in edges_ref[input].to) {
+
+        res = get_path(edges_ref[input].to[i]); // s -> a
+
+        if (Array.isArray(res))
+          for (let j in res)
+            multi.push(edges_ref[input].to[i] + "," + res[j]);
+        else
+          multi.push(edges_ref[input].to[i] + "," + res);
+
+      }
+
+      return multi;
+    }
+    else {
+      res = get_path(edges_ref[input].to[0]);
+
+      if (res == "")
+        return edges_ref[input].to[0]; // b
+
+      return edges_ref[input].to[0] + "," + res;
+    }
+  }
+  else
+    return "";
+}
+
+function getEdges(s, t) {
+
+  var _edges = edges._data;
+
+  // fill edges_ref
+  for (let i in _edges) {
+    if (edges_ref[_edges[i].from] == null) edges_ref[_edges[i].from] = {};
+    if (edges_ref[_edges[i].from].to == null) edges_ref[_edges[i].from].to = [];
+    edges_ref[_edges[i].from].to.push(_edges[i].to);
+
+    if (edges_ref[_edges[i].to] == null) edges_ref[_edges[i].to] = {};
+    if (edges_ref[_edges[i].to].from == null) edges_ref[_edges[i].to].from = [];
+    edges_ref[_edges[i].to].from.push(_edges[i].from);
+  }
+  // console.log(edges_ref);
+
+  var tmp_paths = get_path(s);
+
+  for (let i in tmp_paths)
+    tmp_paths[i] = s + "," + tmp_paths[i];
+
+  return tmp_paths;
+}
+
+// get max flow in path
+function getMaxFlow(path) {
+  var maxFlow = Number.MAX_VALUE;
+  var _edges = edges._data;
+
+  for (var i = 0; i < path.length-1; i++) {
+    for (var j in _edges) {
+
+      if (_edges[j].from == path[i] && _edges[j].to == path[i+1]) {
+        maxFlow = Math.min(maxFlow, _edges[j].capacity - _edges[j].fill_capacity);
+        break;
+      }
+
+    }
+  }
+
+  return maxFlow;
+}
+
+function updateEdges(graph, finished) {
+  for (var i in graph) {
+
+    var c = "#2b7ce9";
+
+    if (graph[i].from == path[idx_steps-1] && graph[i].to == path[idx_steps] && finished != true)
+      c = "#dd2c00";
+
+    try {
+      edges.update({
+        id: graph[i].id,
+        from: graph[i].from,
+        to: graph[i].to,
+        label: graph[i].label,
+        color: { color: c }
+      });
+    } catch (err) {
+      alert(err);
+    }
+  }
+}
+
+function applyPath(input) {
   // parsing input
   input = input.replace("(", "");
   input = input.replace(")", "");
-  var order = input.split(",");
+  input = input.replace(/ /g, "");
 
-  // console.log(step);
-  // console.log(steps);
+  path = input.split(",");
 
-  if (start) {
-    $("#c_p").html(input);
-
-    // update label button
-    if (document.getElementById(str) != null)
-      document.getElementById(str).innerHTML = '<i class="fas fa-check"></i>';
-
-    var _edges = edges._data;
-
-    var minCut = Number.MAX_VALUE;
-    var condition_flow = false;
-
-    // Search minCut
-    for (var i = 0; i < order.length-1; i++) {
-      for (var j in _edges) {
-
-        condition_flow = (_edges[j].flow > 0 && _edges[j].to == order[i] && _edges[j].from == order[i+1]);
-        /*
-        * A,B
-        * A -> B
-        * (A,B).flow > 0   =>  A <- B
-        * 
-        */
-
-        if ((_edges[j].from == order[i] && _edges[j].to == order[i+1]) || condition_flow) {
-
-          if (condition_flow)
-            minCut = Math.min(minCut, _edges[j].flow);
-          else
-            minCut = Math.min(minCut, _edges[j].capacity);
-
-          break;
-        }
-
-      }
+  // checking if the path exists
+  var available = false;
+  for (let i in paths) {
+    if (paths[i] == input) {
+      available = true;
+      break;
     }
-
-    // console.log(minCut);
-
-    max_flow += minCut;
-    document.getElementById("maxflow").innerHTML = max_flow;
-
-    start = false;
   }
+
+  if (!available) {
+    $("#c_p").hide();
+    $("#error").show();
+    $("#error").html("The path is not present in the graph!");
+    return;
+  }
+
+  var maxFlow = getMaxFlow(path);
+
+  if (maxFlow == 0) {
+    $("#c_p").hide();
+    $("#error").show();
+    $("#error").html("The current max flow for this path is 0!");
+    return;
+  }
+
+  $("#error").hide();
+  $("#c_p").show();
+  $("#c_p").html(input + " " + "(" + maxFlow + ")");
+
+  if ($("#stepbystep").is(':checked')) {
+    $("#start").show();
+    step = true;
+
+    $("#apply_path").prop("disabled", true);
+    $("#ap").prop("disabled", true);
+    $("#stepbystep").prop("disabled", true);
+  }
+
+  var _edges = edges._data;
 
   if (step)
-    apply_minCut(_edges, order, minCut, true);
-  else
-    apply_minCut(_edges, order, minCut);
+    steps.push(jQuery.extend(true, {}, _edges));
 
-  // update_edges_dst();
-
-  console.log(edges);
-}
-
-function apply_minCut(_edges, order, minCut, if_step) {
-
-  // var tmp = 0;
-
-  // console.log("STEPS: " + steps);
-
-  var i = 0;
-  var j = 0;
-
-  if (step) {
-    i = tmp_i;
+  for (var j in _edges) {
+    try {
+      edges.update({
+        id: _edges[j].id,
+        from: _edges[j].from,
+        to: _edges[j].to,
+        label: _edges[j].label,
+        color: { color: "#2b7ce9" }
+      });
+    } catch (err) {
+      alert(err);
+    }
   }
 
-  for (; i < order.length-1; i++) {
-    for (j in _edges) {
+  for (var i = 0; i < path.length-1; i++) {
+    for (var j in _edges) {
 
-      if ((_edges[j].from == order[i] && _edges[j].to == order[i+1]) || (_edges[j].flow > 0 && _edges[j].capacity <= 0 && _edges[j].to == order[i] && _edges[j].from == order[i+1])) {
+      if (_edges[j].from == path[i] && _edges[j].to == path[i+1]) {
+        _edges[j].fill_capacity += maxFlow;
+        _edges[j].label = _edges[j].fill_capacity + "/" + _edges[j].capacity;
 
-        tmp_i = i+1;
-        // tmp_j = j;
-
-        // if (step && tmp < steps)
-        //   tmp++;
-        // else {
-
-          _edges[j].capacity -= minCut;
-          _edges[j].flow += minCut;
-
-          // update labels
-          _edges[j].label = _edges[j].flow + "/" + _edges[j].c;
+        if (!step) {
           try {
             edges.update({
               id: _edges[j].id,
               from: _edges[j].from,
               to: _edges[j].to,
-              label: _edges[j].label
+              label: _edges[j].label,
+              color: { color: "#dd2c00" }
             });
           } catch (err) {
             alert(err);
           }
-
-          if (if_step) {
-            steps++;
-            return steps;
-          }
-
-          break;
-        // }
-      }
-
-    }
-  }
-
-  start = true;
-  return 0; // finished
-}
-
-// recursive function
-function findPath(current_path, current_node, current_capacity) {
-
-  if (current_node == "t")
-    return { capacity: current_capacity, node: current_node, path: current_path };
-
-  var compare_paths = new Array(edges_dst[current_node].length);
-  var c_path, c_capacity;
-
-  var tmp_c = Number.MAX_VALUE;
-  var tmp_index = 0;
-
-  for (let i in edges_dst[current_node]) {
-
-    c_path = current_path + "," + edges_dst[current_node][i].to;
-    c_capacity = current_capacity + edges_dst[current_node][i].capacity;
-
-    if (edges_dst[current_node][i].flow != edges_dst[current_node][i].c) {
-
-      let obj = findPath(c_path, edges_dst[current_node][i].to, c_capacity);
-
-      if (obj != null) {
-        compare_paths[i] = obj;
-
-        if (tmp_c > compare_paths[i].capacity) {
-          tmp_c = compare_paths[i].capacity;
-          tmp_index = i;
         }
-      }
-    }
+        else
+          steps.push(jQuery.extend(true, {}, _edges)); // deep copy of the object
 
-  }
-
-  if (compare_paths[tmp_index] != null)
-    return compare_paths[tmp_index];
-}
-
-function update_edges_dst() {
-  console.log(edges._data);
-  var _edges = edges._data;
-
-  for (var i in _edges) {
-    if (_edges[i].flow > 0 && edges_dst[_edges[i].to]) {
-
-      var flag = false;
-      for (var j in edges_dst[_edges[i].to]) {
-        if (edges_dst[_edges[i].to][j].to == _edges[i].to && edges_dst[_edges[i].to][j].from == _edges[i].from) {
-          flag = true;
-          break;
-        }
-      }
-
-      if (!flag) {
-        edges_dst[_edges[i].to].push({
-          from: _edges[i].to,
-          to: _edges[i].from,
-          capacity: _edges[i].flow,
-          flow: 0,
-          c: _edges[i].c,
-        });
+        break;
       }
 
     }
   }
+
+  max_flow += maxFlow;
+  document.getElementById("maxflow").innerHTML = max_flow;
 }
 
-function edmondsKarp() {
-  var _edges = edges._data;
+function start() {
+  $("#start").hide();
+  $("#next").show();
 
-  for (var i in _edges) {
+  next();
+}
 
-    if (edges_dst[_edges[i].from] == null)
-      edges_dst[_edges[i].from] = [];
+function next() {
+  idx_steps++;
 
-    edges_dst[_edges[i].from].push(_edges[i]);
+  updateEdges(steps[idx_steps]);
+
+  if (idx_steps > 0)
+    $("#back").show();
+
+  if (idx_steps == steps.length-1) {
+    $("#next").hide();
+    $("#finish").show();
+  }
+}
+
+function back() {
+  idx_steps--;
+
+  if (idx_steps == 0) {
+    $("#next").hide();
+    $("#start").show();
+    $("#back").hide();
   }
 
-  var paths;
-  while (paths = findPath("s", "s", 0)) {
-    findPath("s", "s", 0);
-    fordFulkerson(paths.path);
+  if (idx_steps < steps.length) {
+    if (idx_steps != 0)
+      $("#next").show();
+
+    $("#finish").hide();
   }
+
+  updateEdges(steps[idx_steps]);
+}
+
+function finish() {
+  updateEdges(steps[idx_steps], true);
+
+  step = false;
+  idx_steps = 0;
+  steps = [];
+
+  $("#apply_path").prop("disabled", false);
+  $("#ap").prop("disabled", false);
+  $("#stepbystep").prop("disabled", false);
+
+  $("#back").hide();
+  $("#finish").hide();
 }
