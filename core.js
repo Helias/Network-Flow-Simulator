@@ -8,6 +8,30 @@ var steps = [], step = false, idx_steps = 0;
 //   return JSON.stringify(obj, null, 4);
 // }
 
+// create an array with nodes
+nodes = new vis.DataSet();
+
+nodes.add([
+  { id: 's', label: 'S'/*, color: { background: "#54b4eb" }, font: { color: "#fff" } */},
+  { id: 'a', label: 'A'},
+  { id: 'b', label: 'B'},
+  { id: 'c', label: 'C'},
+  { id: 'd', label: 'D'},
+  { id: 't', label: 'T'}
+]);
+
+edges = new vis.DataSet();
+edges.add([
+  { id: "0", from:"s", to:"a", arrows: "to", capacity:20, fill_capacity:0, label:"0/20", color: { color: "#2b7ce9" } },
+  { id: "1", from:"s", to:"c", arrows: "to", capacity:30, fill_capacity:0, label:"0/30", color: { color: "#2b7ce9" } },
+  { id: "2", from:"a", to:"b", arrows: "to", capacity:10, fill_capacity:0, label:"0/10", color: { color: "#2b7ce9" } },
+  { id: "3", from:"a", to:"d", arrows: "to", capacity:20, fill_capacity:0, label:"0/20", color: { color: "#2b7ce9" } },
+  { id: "4", from:"b", to:"t", arrows: "to", capacity:15, fill_capacity:0, label:"0/15", color: { color: "#2b7ce9" } },
+  { id: "5", from:"c", to:"b", arrows: "to", capacity:20, fill_capacity:0, label:"0/20", color: { color: "#2b7ce9" } },
+  { id: "6", from:"d", to:"t", arrows: "to", capacity:30, fill_capacity:0, label:"0/30", color: { color: "#2b7ce9" } }
+]);
+// console.log(edges._data);
+
 $(document).ready(function() {
 
   $("#c_p").hide();
@@ -22,44 +46,66 @@ $(document).ready(function() {
   paths = getEdges("s", "t");
 });
 
+function clearPopUp() {
+  document.getElementById('saveButton').onclick = null;
+  document.getElementById('cancelButton').onclick = null;
+  document.getElementById('network-popUp').style.display = 'none';
+}
+
+function cancelEdit(callback) {
+  clearPopUp();
+  callback(null);
+}
+
+function saveData(data,callback) {
+  data.id = document.getElementById('node-id').value;
+  data.label = document.getElementById('node-label').value;
+  clearPopUp();
+  callback(data);
+}
+
 function draw() {
-  // create an array with nodes
-  nodes = new vis.DataSet();
-
-  nodes.add([
-    { id: 's', label: 'S'/*, color: { background: "#54b4eb" }, font: { color: "#fff" } */},
-    { id: 'a', label: 'A'},
-    { id: 'b', label: 'B'},
-    { id: 'c', label: 'C'},
-    { id: 'd', label: 'D'},
-    { id: 't', label: 'T'},
-    // { id: 'x', label: 'X'},
-  ]);
-
-  // create an array with edges
-  edges = new vis.DataSet();
-
-  edges.add([
-    { id: "0", from:"s", to:"a", arrows: "to", capacity:20, fill_capacity:0, label:"0/20", color: { color: "#2b7ce9" } },
-    { id: "1", from:"s", to:"c", arrows: "to", capacity:30, fill_capacity:0, label:"0/30", color: { color: "#2b7ce9" } },
-    { id: "2", from:"a", to:"b", arrows: "to", capacity:10, fill_capacity:0, label:"0/10", color: { color: "#2b7ce9" } },
-    { id: "3", from:"a", to:"d", arrows: "to", capacity:20, fill_capacity:0, label:"0/20", color: { color: "#2b7ce9" } },
-    { id: "4", from:"b", to:"t", arrows: "to", capacity:15, fill_capacity:0, label:"0/15", color: { color: "#2b7ce9" } },
-    { id: "5", from:"c", to:"b", arrows: "to", capacity:20, fill_capacity:0, label:"0/20", color: { color: "#2b7ce9" } },
-    { id: "6", from:"d", to:"t", arrows: "to", capacity:30, fill_capacity:0, label:"0/30", color: { color: "#2b7ce9" } },
-    // { id: "7", from:"c", to:"x", arrows: "to", flow:0, capacity:30, fill_capacity:0, c:30, label:"0/30", visited:false },
-    // { id: "8", from:"x", to:"t", arrows: "to", flow:0, capacity:30, fill_capacity:0, c:30, label:"0/30", visited:false }
-  ]);
-
-  // console.log(edges._data);
-
   // create a network
   var container = document.getElementById('network');
   var data = {
     nodes: nodes,
     edges: edges
   };
-  var options = {};
+
+  var options = {
+    layout: { randomSeed: 2 }, // just to make sure the layout is the same
+    locale: "en",
+    manipulation: {
+      addNode: function (data, callback) {
+        document.getElementById('operation').innerHTML = "Add Node";
+        document.getElementById('node-id').value = data.id;
+        document.getElementById('node-label').value = data.label;
+        document.getElementById('saveButton').onclick = saveData.bind(this, data, callback);
+        document.getElementById('cancelButton').onclick = clearPopUp.bind();
+        document.getElementById('network-popUp').style.display = 'block';
+      },
+      editNode: function (data, callback) {
+        document.getElementById('operation').innerHTML = "Edit Node";
+        document.getElementById('node-id').value = data.id;
+        document.getElementById('node-label').value = data.label;
+        document.getElementById('saveButton').onclick = saveData.bind(this, data, callback);
+        document.getElementById('cancelButton').onclick = cancelEdit.bind(this,callback);
+        document.getElementById('network-popUp').style.display = 'block';
+      },
+      addEdge: function (data, callback) {
+        if (data.from == data.to) {
+          var r = confirm("Do you want to connect the node to itself?");
+          if (r == true) {
+            callback(data);
+          }
+        }
+        else {
+          callback(data);
+        }
+      }
+    }
+  };
+
   network = new vis.Network(container, data, options);
 }
 
@@ -194,7 +240,7 @@ function applyPath(input) {
   if (maxFlow == 0) {
     $("#c_p").hide();
     $("#error").show();
-    $("#error").html("The current max flow for this path is 0!");
+    $("#error").html("The current flow for this path is 0!");
     return;
   }
 
