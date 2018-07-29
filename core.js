@@ -47,9 +47,12 @@ $(document).ready(function() {
 });
 
 function clearPopUp() {
+  document.getElementById('saveButton-edge').onclick = null;
   document.getElementById('saveButton').onclick = null;
   document.getElementById('cancelButton').onclick = null;
+  document.getElementById('cancelButton-edge').onclick = null;
   document.getElementById('network-popUp').style.display = 'none';
+  document.getElementById('network-popUp-edge').style.display = 'none';
 }
 
 function cancelEdit(callback) {
@@ -57,9 +60,17 @@ function cancelEdit(callback) {
   callback(null);
 }
 
-function saveData(data,callback) {
+function saveData(data, callback) {
   data.id = document.getElementById('node-id').value;
   data.label = document.getElementById('node-label').value;
+  clearPopUp();
+  callback(data);
+}
+
+function saveDataEdge(data, callback) {
+  data.capacity = document.getElementById("edge-capacity").value;
+  data.label = "0/" + data.capacity;
+
   clearPopUp();
   callback(data);
 }
@@ -99,9 +110,15 @@ function draw() {
             callback(data);
           }
         }
-        else {
-          callback(data);
-        }
+        data.id = (Object.keys(edges._data).length).toString();
+        data.fill_capacity = 0;
+        data.color = { color: "#2b7ce9" };
+        data.arrows = "to";
+
+        document.getElementById('operation-edge').innerHTML = "Add Edge";
+        document.getElementById('saveButton-edge').onclick = saveDataEdge.bind(this, data, callback, true);
+        document.getElementById('cancelButton-edge').onclick = clearPopUp.bind();
+        document.getElementById('network-popUp-edge').style.display = 'block';
       }
     }
   };
@@ -148,6 +165,7 @@ function get_path(input) {
 
 function getEdges(s, t) {
 
+  edges_ref = {};
   var _edges = edges._data;
 
   // fill edges_ref

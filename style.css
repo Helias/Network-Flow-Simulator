@@ -44,7 +44,7 @@ div.table_description {
 #operation {
   font-size: 28px;
 }
-#network-popUp {
+.network-popup {
   display: none;
   position: absolute;
   padding: 10px;
