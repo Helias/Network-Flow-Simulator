@@ -3,10 +3,60 @@ var nodes, edges, network, max_flow = 0, paths = [], edges_ref = {}, path = [];
 // steps variables
 var steps = [], step = false, idx_steps = 0;
 
-// convenience method to stringify a JSON object
-// function toJSON(obj) {
-//   return JSON.stringify(obj, null, 4);
-// }
+var graph = {}; // to load graph
+
+function saveGraph() {
+
+  var tmp_edges = edges._data;
+
+  for (var i in tmp_edges)
+    tmp_edges[i].color.color = "#2b7ce9";
+
+  let save = { nodes: nodes._data, edges: tmp_edges };
+  let name = document.getElementById("graph-name").value + ".json";
+  download(JSON.stringify(save), name, "json");
+}
+
+function readTextFile(input) {
+  var fReader = new FileReader();
+  fReader.readAsDataURL(input.files[0]);
+  fReader.onloadend = function(event) {
+    graph = event.target.result;
+    graph = graph.replace("data:application/json;base64,", "");
+    graph = JSON.parse(atob(graph));
+    loadGraph();
+    $("#saveModal").modal({ show: true });
+  }
+}
+
+function download(data, filename, type) {
+    var file = new Blob([data], {type: type});
+    if (window.navigator.msSaveOrOpenBlob) // IE10+
+        window.navigator.msSaveOrOpenBlob(file, filename);
+    else { // Others
+        var a = document.createElement("a"),
+                url = URL.createObjectURL(file);
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(function() {
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        }, 0);
+    }
+}
+
+function loadGraph() {
+  nodes = new vis.DataSet();
+  nodes._data = graph.nodes;
+
+  edges = new vis.DataSet();
+  edges._data = graph.edges;
+
+  draw();
+  load_paths();
+}
 
 // create an array with nodes
 nodes = new vis.DataSet();

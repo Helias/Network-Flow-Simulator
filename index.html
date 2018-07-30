@@ -112,7 +112,7 @@
           </div>
 
           <div class="row">
-            <div class="col-12">
+            <div class="col-9">
 
               <div id="network-popUp" class="network-popup">
                 <span id="operation">node</span> <br>
@@ -145,6 +145,40 @@
               </div>
 
               <div id="network"></div>
+
+            </div>
+
+            <div class="col-3 text-center">
+              <br>
+              <br>
+
+              <h2>Load/Save Graph</h2>
+              <button class="btn btn-primary" OnClick="document.getElementById('load-file').click();">Load Graph</button>
+              <input type="file" id="load-file" OnChange="readTextFile(this)" style="display: none">
+
+              <br>
+              <br>
+
+              Graph Name:
+              <input type="text" value="myGraph" id="graph-name">
+              <br>
+              <br>
+              <button class="btn btn-info" OnClick="saveGraph()">Save Graph</button>
+
+              <!-- Modal -->
+              <div class="modal fade" id="saveModal" tabindex="-1" role="dialog" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                  <div class="modal-content">
+                    <div class="modal-header bg-primary"></div>
+                    <div class="modal-body">
+                      <h2 class="text-primary">Graph loaded!</h2>
+                    </div>
+                    <div class="modal-footer">
+                      <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
 
             </div>
           </div>
