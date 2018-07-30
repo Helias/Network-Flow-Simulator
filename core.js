@@ -54,6 +54,9 @@ function loadGraph() {
   edges = new vis.DataSet();
   edges._data = graph.edges;
 
+  max_flow = 0;
+  $("#maxflow").html(max_flow);
+
   draw();
   load_paths();
 }
@@ -131,18 +134,19 @@ function cancelEdit(callback) {
 }
 
 function saveData(data, callback) {
-  data.id = document.getElementById('node-id').value;
-  data.label = document.getElementById('node-label').value;
+  data.id = $("#node-label").val().toLowerCase();
+  data.label = $("#node-label").val().toUpperCase();
   clearPopUp();
   callback(data);
 }
 
 function saveDataEdge(data, callback) {
-  data.capacity = document.getElementById("edge-capacity").value;
+  data.capacity = $("#edge-capacity").val();
   data.label = "0/" + data.capacity;
 
   clearPopUp();
   callback(data);
+  load_paths();
 }
 
 function draw() {
@@ -159,7 +163,6 @@ function draw() {
     manipulation: {
       addNode: function (data, callback) {
         document.getElementById('operation').innerHTML = "Add Node";
-        document.getElementById('node-id').value = data.id;
         document.getElementById('node-label').value = data.label;
         document.getElementById('saveButton').onclick = saveData.bind(this, data, callback);
         document.getElementById('cancelButton').onclick = clearPopUp.bind();
@@ -167,7 +170,6 @@ function draw() {
       },
       editNode: function (data, callback) {
         document.getElementById('operation').innerHTML = "Edit Node";
-        document.getElementById('node-id').value = data.id;
         document.getElementById('node-label').value = data.label;
         document.getElementById('saveButton').onclick = saveData.bind(this, data, callback);
         document.getElementById('cancelButton').onclick = cancelEdit.bind(this,callback);
@@ -414,7 +416,7 @@ function applyPath(input) {
   }
 
   max_flow += maxFlow;
-  document.getElementById("maxflow").innerHTML = max_flow;
+  $("#maxflow").html(max_flow);
 
   load_paths();
 }
