@@ -59,94 +59,95 @@
           <div class="row">
             <div class="col-6">
 
-              <div class="box-apply">
-                <div class="apply">
-                  Insert path: <input type="text" id="ap"> <button OnClick="applyPath(document.getElementById('ap').value)" class="btn btn-primary" id="apply_path">Apply Ford Fulkerson</button>
+                <small>Insert path:</small>
                   <br>
-                  <br>
-                  Max Flow: <b id="maxflow">0</b>
-                  <br>
-                  <br>
-                  <button class="btn btn-primary" OnClick="edmondsKarp()">Apply Edmonds-Karp</button>
-                </div>
-              </div>
+                  <input type="text" id="ap">
+                </label>
 
-            </div>
+                <button OnClick="applyPath(document.getElementById('ap').value)" class="btn btn-primary" id="apply_path">Apply Ford Fulkerson</button>
 
-            <div class="col-6">
+                <br>
 
-              <div class="card border-primary mb-3" style="max-width: 20rem;">
-                <div class="card-header">Suggested paths</div>
-                <div class="card-body">
-                  <p class="card-text">
-                    - (s,a,b,t)     <button class="btn btn-xs btn-primary" OnClick="applyPath('(s,a,b,t)')" id="sabt"><i class="fas fa-arrow-circle-down"></i></button><br>
-                    - (s,a,d,t)     <button class="btn btn-xs btn-primary" OnClick="applyPath('(s,a,d,t)')" id="sadt"><i class="fas fa-arrow-circle-down"></i></button><br>
-                    - (s,c,b,a,d,t) <button class="btn btn-xs btn-primary" OnClick="applyPath('(s,c,b,a,d,t)')" id="scbadt"><i class="fas fa-arrow-circle-down"></i></button><br>
-                    - (s,c,b,t)     <button class="btn btn-xs btn-primary" OnClick="applyPath('(s,c,b,t)')" id="scbt"><i class="fas fa-arrow-circle-down"></i></button><br>
-                  </p>
-                </div>
-              </div>
-            </div>
-
-          </div>
-
-          <div class="row">
-            <div class="col-12">
-              <div class="text-center">
                 <label>
                   <input type="checkbox" id="stepbystep"> Step by step
                 </label>
 
                 <br>
+                <br>
 
-                <button class="btn btn-success" id="start"  OnClick="start()">Start</button>
-                <button class="btn btn-info"    id="back"   OnClick="back()">Back</button>
-                <button class="btn btn-primary" id="next"   OnClick="next()">Next</button>
-                <button class="btn btn-danger"  id="finish" OnClick="finish()">Finish</button>
+                Max Flow: <b id="maxflow">0</b>
+                <!-- <br>
+                <br>
+                <button class="btn btn-primary" OnClick="edmondsKarp()">Apply Edmonds-Karp</button> -->
 
                 <br>
                 <br>
 
-                <h2 id="c_p"></h2>
-                <h2 class="text-danger" id="error"></h2>
+            </div>
 
-                <br>
+            <div class="col-3">
+              <button class="btn btn-success" id="start"  OnClick="start()">Start</button>
+              <button class="btn btn-info"    id="back"   OnClick="back()">Back</button>
+              <button class="btn btn-primary" id="next"   OnClick="next()">Next</button>
+              <button class="btn btn-danger"  id="finish" OnClick="finish()">Finish</button>
+
+              <br>
+              <br>
+
+              <h2 id="c_p"></h2>
+              <h2 class="text-danger" id="error"></h2>
+            </div>
+
+            <div class="col-3">
+
+              <div class="card border-primary mb-3">
+                <div class="card-header">Paths</div>
+                <div class="card-body">
+                  <p class="card-text" id="list-paths"></p>
+                  <!-- - (s,c,b,a,d,t) <button class="btn btn-xs btn-primary" OnClick="applyPath('(s,c,b,a,d,t)')" id="scbadt"><i class="fas fa-arrow-circle-down"></i></button><br> -->
+                </div>
               </div>
+
             </div>
           </div>
 
+          <div class="row">
+            <div class="col-12">
 
-          <div id="network-popUp" class="network-popup">
-            <span id="operation">node</span> <br>
-            <table style="margin:auto;">
-              <tr>
-                <td>id</td>
-                <td><input id="node-id" value="new value" OnChange="this.value = this.value.toLowerCase()"></td>
-              </tr>
-              <tr>
-                <td>label</td>
-                <td><input id="node-label" value="new value" OnChange="this.value = this.value.toUpperCase()"></td>
-              </tr>
-            </table>
-            <br>
-            <input type="button" value="Save"   id="saveButton"   class="btn btn-primary">
-            <input type="button" value="Cancel" id="cancelButton" class="btn btn-danger">
+              <div id="network-popUp" class="network-popup">
+                <span id="operation">node</span> <br>
+                <table style="margin:auto;">
+                  <tr>
+                    <td>id</td>
+                    <td><input id="node-id" value="new value" OnChange="this.value = this.value.toLowerCase()"></td>
+                  </tr>
+                  <tr>
+                    <td>label</td>
+                    <td><input id="node-label" value="new value" OnChange="this.value = this.value.toUpperCase()"></td>
+                  </tr>
+                </table>
+                <br>
+                <input type="button" value="Save"   id="saveButton"   class="btn btn-primary">
+                <input type="button" value="Cancel" id="cancelButton" class="btn btn-danger">
+              </div>
+
+              <div id="network-popUp-edge" class="network-popup">
+                <span id="operation-edge">edge</span> <br>
+                <table style="margin:auto;">
+                  <tr>
+                    <td>capacity</td>
+                    <td><input type="number" id="edge-capacity" value="10"></td>
+                  </tr>
+                </table>
+                <br>
+                <input type="button" value="Save"   id="saveButton-edge"   class="btn btn-primary">
+                <input type="button" value="Cancel" id="cancelButton-edge" class="btn btn-danger">
+              </div>
+
+              <div id="network"></div>
+
+            </div>
           </div>
-
-          <div id="network-popUp-edge" class="network-popup">
-            <span id="operation-edge">edge</span> <br>
-            <table style="margin:auto;">
-              <tr>
-                <td>capacity</td>
-                <td><input type="number" id="edge-capacity" value="10"></td>
-              </tr>
-            </table>
-            <br>
-            <input type="button" value="Save"   id="saveButton-edge"   class="btn btn-primary">
-            <input type="button" value="Cancel" id="cancelButton-edge" class="btn btn-danger">
-          </div>
-
-          <div id="network"></div>
 
         </div>
 

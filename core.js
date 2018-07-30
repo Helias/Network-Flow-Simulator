@@ -43,8 +43,28 @@ $(document).ready(function() {
   $("#finish").hide();
 
   draw();
-  paths = getEdges("s", "t");
+  load_paths();
 });
+
+function load_paths() {
+  let src = "s";
+  let dst = "t";
+  paths = getEdges(src, dst);
+
+  var paths_html = "";
+
+  for (let i = 0; i < paths.length; i++) {
+    if (getMaxFlow(paths[i].split(",")) > 0)
+      paths_html += `- ${paths[i]} <button class="btn btn-xs btn-primary" OnClick="applyPath('${paths[i]}')" id="sabt"><i class="fas fa-arrow-circle-down"></i></button><br>\n`;
+    else
+      paths_html += `- ${paths[i]} <button class="btn btn-xs btn-success" id="sabt"><i class="fas fa-check"></i></button><br>\n`;
+  }
+
+  if (paths_html == "")
+    paths_html ="No paths";
+
+  $("#list-paths").html(paths_html);
+}
 
 function clearPopUp() {
   document.getElementById('saveButton-edge').onclick = null;
@@ -127,7 +147,7 @@ function draw() {
 }
 
 // dfs recursive
-function get_path(input) {
+function get_path(input, dst) {
   var res = "";
 
   if (edges_ref[input].to != null) {
@@ -138,25 +158,32 @@ function get_path(input) {
 
       for (var i in edges_ref[input].to) {
 
-        res = get_path(edges_ref[input].to[i]); // s -> a
+        if (edges_ref[input].to[i] != dst) {
+          res = get_path(edges_ref[input].to[i], dst);
 
-        if (Array.isArray(res))
-          for (let j in res)
-            multi.push(edges_ref[input].to[i] + "," + res[j]);
+          if (Array.isArray(res))
+            for (let j in res)
+              multi.push(edges_ref[input].to[i] + "," + res[j]);
+          else
+            multi.push(edges_ref[input].to[i] + "," + res);
+        }
         else
-          multi.push(edges_ref[input].to[i] + "," + res);
-
+          multi.push(edges_ref[input].to[i]);
       }
 
       return multi;
     }
     else {
-      res = get_path(edges_ref[input].to[0]);
+      if (edges_ref[input].to[0] != dst) {
+        res = get_path(edges_ref[input].to[0], dst);
 
-      if (res == "")
-        return edges_ref[input].to[0]; // b
+        if (res == "")
+          return edges_ref[input].to[0];
 
-      return edges_ref[input].to[0] + "," + res;
+        return edges_ref[input].to[0] + "," + res;
+      }
+      else
+        return edges_ref[input].to[0];
     }
   }
   else
@@ -180,16 +207,26 @@ function getEdges(s, t) {
   }
   // console.log(edges_ref);
 
-  var tmp_paths = get_path(s);
+  var tmp_paths = get_path(s, t);
 
-  for (let i in tmp_paths)
-    tmp_paths[i] = s + "," + tmp_paths[i];
+  if (!Array.isArray(tmp_paths))
+    tmp_paths = [s + "," + tmp_paths];
 
-  return tmp_paths;
+  var _paths = [];
+
+  for (var i in tmp_paths) {
+    if (tmp_paths[i].substr(tmp_paths[i].length -1) == t) {
+      tmp_paths[i] = s + "," + tmp_paths[i];
+      _paths.push(tmp_paths[i]);
+    }
+  }
+
+  return _paths;
 }
 
 // get max flow in path
 function getMaxFlow(path) {
+
   var maxFlow = Number.MAX_VALUE;
   var _edges = edges._data;
 
@@ -203,6 +240,9 @@ function getMaxFlow(path) {
 
     }
   }
+
+  if (maxFlow == Number.MAX_VALUE)
+    maxFlow = 0;
 
   return maxFlow;
 }
@@ -325,6 +365,8 @@ function applyPath(input) {
 
   max_flow += maxFlow;
   document.getElementById("maxflow").innerHTML = max_flow;
+
+  load_paths();
 }
 
 function start() {
