@@ -1,4 +1,4 @@
-var nodes, edges, network, max_flow = 0, paths = [], edges_ref = {}, path = [];
+var nodes, edges, network, max_flow = 0, paths = [], edges_ref = {}, path = [], edges_network, residual_edges;
 
 // steps variables
 var steps = [], step = false, idx_steps = 0;
@@ -9,8 +9,12 @@ function saveGraph() {
 
   var tmp_edges = edges._data;
 
-  for (var i in tmp_edges)
-    tmp_edges[i].color.color = "#2b7ce9";
+  for (var i in tmp_edges) {
+    if (tmp_edges[i].residual)
+      tmp_edges[i].color.color = "#4caf50";
+    else
+      tmp_edges[i].color.color = "#2b7ce9";
+  }
 
   let save = { nodes: nodes._data, edges: tmp_edges };
   let name = document.getElementById("graph-name").value + ".json";
@@ -75,13 +79,13 @@ nodes.add([
 
 edges = new vis.DataSet();
 edges.add([
-  { id: "0", from:"s", to:"a", arrows: "to", capacity:20, fill_capacity:0, label:"0/20", color: { color: "#2b7ce9" } },
-  { id: "1", from:"s", to:"c", arrows: "to", capacity:30, fill_capacity:0, label:"0/30", color: { color: "#2b7ce9" } },
-  { id: "2", from:"a", to:"b", arrows: "to", capacity:10, fill_capacity:0, label:"0/10", color: { color: "#2b7ce9" } },
-  { id: "3", from:"a", to:"d", arrows: "to", capacity:20, fill_capacity:0, label:"0/20", color: { color: "#2b7ce9" } },
-  { id: "4", from:"b", to:"t", arrows: "to", capacity:15, fill_capacity:0, label:"0/15", color: { color: "#2b7ce9" } },
-  { id: "5", from:"c", to:"b", arrows: "to", capacity:20, fill_capacity:0, label:"0/20", color: { color: "#2b7ce9" } },
-  { id: "6", from:"d", to:"t", arrows: "to", capacity:30, fill_capacity:0, label:"0/30", color: { color: "#2b7ce9" } }
+  { id: "0", from:"s", to:"a", arrows: "to", capacity:20, fill_capacity:0, label:"0/20", color: { color: "#2b7ce9" }, residual: false },
+  { id: "1", from:"s", to:"c", arrows: "to", capacity:30, fill_capacity:0, label:"0/30", color: { color: "#2b7ce9" }, residual: false },
+  { id: "2", from:"a", to:"b", arrows: "to", capacity:10, fill_capacity:0, label:"0/10", color: { color: "#2b7ce9" }, residual: false },
+  { id: "3", from:"a", to:"d", arrows: "to", capacity:20, fill_capacity:0, label:"0/20", color: { color: "#2b7ce9" }, residual: false },
+  { id: "4", from:"b", to:"t", arrows: "to", capacity:15, fill_capacity:0, label:"0/15", color: { color: "#2b7ce9" }, residual: false },
+  { id: "5", from:"c", to:"b", arrows: "to", capacity:20, fill_capacity:0, label:"0/20", color: { color: "#2b7ce9" }, residual: false },
+  { id: "6", from:"d", to:"t", arrows: "to", capacity:30, fill_capacity:0, label:"0/30", color: { color: "#2b7ce9" }, residual: false }
 ]);
 // console.log(edges._data);
 
@@ -186,6 +190,7 @@ function draw() {
         data.fill_capacity = 0;
         data.color = { color: "#2b7ce9" };
         data.arrows = "to";
+        data.residual = false;
 
         document.getElementById('operation-edge').innerHTML = "Add Edge";
         document.getElementById('saveButton-edge').onclick = saveDataEdge.bind(this, data, callback, true);
@@ -199,7 +204,7 @@ function draw() {
 }
 
 // dfs recursive
-function get_path(input, dst) {
+function get_path(input, dst, current_path) {
   var res = "";
 
   if (edges_ref[input].to != null) {
@@ -211,13 +216,28 @@ function get_path(input, dst) {
       for (var i in edges_ref[input].to) {
 
         if (edges_ref[input].to[i] != dst) {
-          res = get_path(edges_ref[input].to[i], dst);
+
+          // check for cycle
+          var tmp_c = current_path.split(",");
+
+          console.log("current_path: " + current_path);
+          console.log(edges_ref[input].to[i]);
+          console.log("#############");
+
+          for (let j in tmp_c)
+            if (edges_ref[input].to[i] == tmp_c[j])
+              return "cycle";
+
+          res = get_path(edges_ref[input].to[i], dst, current_path + "," + input);
 
           if (Array.isArray(res))
             for (let j in res)
               multi.push(edges_ref[input].to[i] + "," + res[j]);
-          else
+          else if (res != "cycle")
             multi.push(edges_ref[input].to[i] + "," + res);
+
+          if (res == "cycle")
+            console.log("asd_multi");
         }
         else
           multi.push(edges_ref[input].to[i]);
@@ -227,10 +247,21 @@ function get_path(input, dst) {
     }
     else {
       if (edges_ref[input].to[0] != dst) {
-        res = get_path(edges_ref[input].to[0], dst);
+
+        // check for cycle
+        var tmp_c = current_path.split(",");
+        for (let j in tmp_c)
+          if (edges_ref[input].to[i] == tmp_c[j])
+            return "cycle";
+
+        res = get_path(edges_ref[input].to[0], dst, current_path + "," + input);
 
         if (res == "")
           return edges_ref[input].to[0];
+        else if (res == "cycle") {
+          console.log("asd");
+          return "";
+        }
 
         return edges_ref[input].to[0] + "," + res;
       }
@@ -259,7 +290,7 @@ function getEdges(s, t) {
   }
   // console.log(edges_ref);
 
-  var tmp_paths = get_path(s, t);
+  var tmp_paths = get_path(s, t, s);
 
   if (!Array.isArray(tmp_paths))
     tmp_paths = [s + "," + tmp_paths];
@@ -299,21 +330,25 @@ function getMaxFlow(path) {
   return maxFlow;
 }
 
-function updateEdges(graph, finished) {
+function updateEdges(graph, f) {
   for (var i in graph) {
 
     var c = "#2b7ce9";
 
-    if (graph[i].from == path[idx_steps-1] && graph[i].to == path[idx_steps] && finished != true)
+    if (graph[i].from == path[idx_steps-1] && graph[i].to == path[idx_steps] && f != true)
       c = "#dd2c00";
+    if (graph[i].residual)
+      c = "#4caf50";
 
     try {
       edges.update({
         id: graph[i].id,
         from: graph[i].from,
+        arrows: graph[i].arrows,
         to: graph[i].to,
         label: graph[i].label,
-        color: { color: c }
+        color: { color: c },
+        residual: graph[i].residual
       });
     } catch (err) {
       alert(err);
@@ -379,7 +414,8 @@ function applyPath(input) {
         from: _edges[j].from,
         to: _edges[j].to,
         label: _edges[j].label,
-        color: { color: "#2b7ce9" }
+        color: { color: (_edges[j].residual ? "#4caf50" : "#2b7ce9") },
+        residual: _edges[j].residual
       });
     } catch (err) {
       alert(err);
@@ -421,6 +457,30 @@ function applyPath(input) {
   load_paths();
 }
 
+function viewResidualNetwork() {
+  edges_network = jQuery.extend(true, {}, edges._data);
+  residual_edges = [];
+
+  for (let i in edges_network) {
+    if (edges_network[i].fill_capacity > 0) {
+      residual_edges.push({
+        id: parseInt(Object.keys(edges_network).length) + parseInt(i),
+        from: edges_network[i].to,
+        to: edges_network[i].from,
+        arrows: "to",
+        capacity: edges_network[i].fill_capacity,
+        fill_capacity: 0,
+        label: "0/" + edges_network[i].fill_capacity,
+        residual: true
+      });
+    }
+  }
+
+  edges.add(residual_edges);
+  updateEdges(edges._data);
+}
+
+// Steps functions
 function start() {
   $("#start").hide();
   $("#next").show();
