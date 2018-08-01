@@ -5,6 +5,31 @@ var steps = [], step = false, idx_steps = 0;
 
 var graph = {}; // to load graph
 
+$(document).ready(function() {
+
+  $("#c_p").hide();
+  $("#error").hide();
+
+  $("#start").hide();
+  $("#back").hide();
+  $("#next").hide();
+  $("#finish").hide();
+
+  draw();
+  load_paths();
+});
+
+var currentMousePos = { x: -1, y: -1 };
+$(document).mousemove(function(event) {
+    var canvas = document.getElementsByTagName("canvas")[0];
+    if (canvas != null) {
+      let rect = canvas.getBoundingClientRect();
+      currentMousePos.x = event.clientX - rect.left;
+      currentMousePos.y = event.clientY - rect.top;
+    }
+});
+
+
 function saveGraph() {
 
   var tmp_edges = edges._data;
@@ -89,20 +114,6 @@ edges.add([
 ]);
 // console.log(edges._data);
 
-$(document).ready(function() {
-
-  $("#c_p").hide();
-  $("#error").hide();
-
-  $("#start").hide();
-  $("#back").hide();
-  $("#next").hide();
-  $("#finish").hide();
-
-  draw();
-  load_paths();
-});
-
 function load_paths() {
   let src = "s";
   let dst = "t";
@@ -166,6 +177,9 @@ function draw() {
     locale: "en",
     manipulation: {
       addNode: function (data, callback) {
+        $("#network-popUp").css('top', currentMousePos.y-100 + "px");
+        $("#network-popUp").css('left', currentMousePos.x-150 + "px");
+
         document.getElementById('operation').innerHTML = "Add Node";
         document.getElementById('node-label').value = data.label;
         document.getElementById('saveButton').onclick = saveData.bind(this, data, callback);
@@ -173,6 +187,9 @@ function draw() {
         document.getElementById('network-popUp').style.display = 'block';
       },
       editNode: function (data, callback) {
+        $("#network-popUp").css('top', currentMousePos.y-100 + "px");
+        $("#network-popUp").css('left', currentMousePos.x-150 + "px");
+
         document.getElementById('operation').innerHTML = "Edit Node";
         document.getElementById('node-label').value = data.label;
         document.getElementById('saveButton').onclick = saveData.bind(this, data, callback);
@@ -191,6 +208,9 @@ function draw() {
         data.color = { color: "#2b7ce9" };
         data.arrows = "to";
         data.residual = false;
+
+        $("#network-popUp-edge").css('top', currentMousePos.y-100 + "px");
+        $("#network-popUp-edge").css('left', currentMousePos.x-150 + "px");
 
         document.getElementById('operation-edge').innerHTML = "Add Edge";
         document.getElementById('saveButton-edge').onclick = saveDataEdge.bind(this, data, callback, true);
@@ -220,13 +240,16 @@ function get_path(input, dst, current_path) {
           // check for cycle
           var tmp_c = current_path.split(",");
 
-          console.log("current_path: " + current_path);
-          console.log(edges_ref[input].to[i]);
-          console.log("#############");
+          var cycle = false;
+          for (let j in tmp_c) {
+            if (edges_ref[input].to[i] == tmp_c[j]) {
+              cycle = true;
+              break;
+            }
+          }
 
-          for (let j in tmp_c)
-            if (edges_ref[input].to[i] == tmp_c[j])
-              return "cycle";
+          if (cycle)
+            continue;
 
           res = get_path(edges_ref[input].to[i], dst, current_path + "," + input);
 
@@ -235,9 +258,6 @@ function get_path(input, dst, current_path) {
               multi.push(edges_ref[input].to[i] + "," + res[j]);
           else if (res != "cycle")
             multi.push(edges_ref[input].to[i] + "," + res);
-
-          if (res == "cycle")
-            console.log("asd_multi");
         }
         else
           multi.push(edges_ref[input].to[i]);
@@ -258,9 +278,13 @@ function get_path(input, dst, current_path) {
 
         if (res == "")
           return edges_ref[input].to[0];
-        else if (res == "cycle") {
-          console.log("asd");
+        else if (res == "cycle")
           return "";
+        else if (Array.isArray(res)) {
+          for (let j in res)
+            res[j] = edges_ref[input].to[0] + "," + res[j];
+
+          return res;
         }
 
         return edges_ref[input].to[0] + "," + res;
@@ -335,10 +359,11 @@ function updateEdges(graph, f) {
 
     var c = "#2b7ce9";
 
-    if (graph[i].from == path[idx_steps-1] && graph[i].to == path[idx_steps] && f != true)
-      c = "#dd2c00";
     if (graph[i].residual)
       c = "#4caf50";
+
+    if (graph[i].from == path[idx_steps-1] && graph[i].to == path[idx_steps] && f != true)
+      c = "#dd2c00";
 
     try {
       edges.update({
@@ -393,13 +418,15 @@ function applyPath(input) {
   $("#c_p").show();
   $("#c_p").html(input + " " + "(" + maxFlow + ")");
 
-  if ($("#stepbystep").is(':checked')) {
+  if ($("#stepbystep").is(':checked') || $("#stepbystep_").is(':checked')) {
     $("#start").show();
     step = true;
 
     $("#apply_path").prop("disabled", true);
     $("#ap").prop("disabled", true);
+
     $("#stepbystep").prop("disabled", true);
+    $("#stepbystep_").prop("disabled", true);
   }
 
   var _edges = edges._data;
@@ -461,23 +488,37 @@ function viewResidualNetwork() {
   edges_network = jQuery.extend(true, {}, edges._data);
   residual_edges = [];
 
+  var check_r_exist, counter = 0;
+
   for (let i in edges_network) {
     if (edges_network[i].fill_capacity > 0) {
-      residual_edges.push({
-        id: parseInt(Object.keys(edges_network).length) + parseInt(i),
-        from: edges_network[i].to,
-        to: edges_network[i].from,
-        arrows: "to",
-        capacity: edges_network[i].fill_capacity,
-        fill_capacity: 0,
-        label: "0/" + edges_network[i].fill_capacity,
-        residual: true
-      });
+
+      check_r_exist = false;
+      for (let j in edges_network)
+        if (edges_network[j].from == edges_network[i].to && edges_network[j].to == edges_network[i].from) {
+          check_r_exist = true;
+          break;
+        }
+
+      if (!check_r_exist) {
+        residual_edges.push({
+          id: parseInt(Object.keys(edges_network).length) + counter,
+          from: edges_network[i].to,
+          to: edges_network[i].from,
+          arrows: "to",
+          capacity: edges_network[i].fill_capacity,
+          fill_capacity: 0,
+          label: "0/" + edges_network[i].fill_capacity,
+          residual: true
+        });
+        counter++;
+      }
     }
   }
 
   edges.add(residual_edges);
   updateEdges(edges._data);
+  load_paths();
 }
 
 // Steps functions
@@ -531,6 +572,7 @@ function finish() {
   $("#apply_path").prop("disabled", false);
   $("#ap").prop("disabled", false);
   $("#stepbystep").prop("disabled", false);
+  $("#stepbystep_").prop("disabled", false);
 
   $("#back").hide();
   $("#finish").hide();

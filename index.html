@@ -64,21 +64,19 @@
                   <input type="text" id="ap">
                 </label>
 
-                <button OnClick="applyPath(document.getElementById('ap').value)" class="btn btn-primary" id="apply_path">Apply Ford Fulkerson</button>
+                <button OnClick="applyPath(document.getElementById('ap').value)" class="btn btn-primary" id="apply_path">Apply Path</button>
 
                 <br>
 
                 <label>
-                  <input type="checkbox" id="stepbystep"> Step by step
+                  <input type="checkbox" id="stepbystep" OnChange="$('#stepbystep_').prop('checked', this.checked)"> Step by step
                 </label>
 
                 <br>
                 <br>
 
-                Flow: <b id="maxflow">0</b>
-                <!-- <br>
-                <br>
-                <button class="btn btn-primary" OnClick="edmondsKarp()">Apply Edmonds-Karp</button> -->
+                <h2>Flow: <b id="maxflow">0</b></h2>
+                <button class="btn btn-success" OnClick="viewResidualNetwork()">Show residual network</button>
 
                 <br>
                 <br>
@@ -103,6 +101,9 @@
               <div class="card border-primary mb-3">
                 <div class="card-header">Paths</div>
                 <div class="card-body">
+                  <label>
+                    <input type="checkbox" id="stepbystep_" OnChange="$('#stepbystep').prop('checked', this.checked)"> Step by step
+                  </label>
                   <p class="card-text" id="list-paths"></p>
                   <!-- - (s,c,b,a,d,t) <button class="btn btn-xs btn-primary" OnClick="applyPath('(s,c,b,a,d,t)')" id="scbadt"><i class="fas fa-arrow-circle-down"></i></button><br> -->
                 </div>
