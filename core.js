@@ -29,6 +29,28 @@ $(document).mousemove(function(event) {
     }
 });
 
+// create an array with nodes
+nodes = new vis.DataSet();
+nodes.add([
+  { id: 's', label: 'S'/*, color: { background: "#54b4eb" }, font: { color: "#fff" } */},
+  { id: 'a', label: 'A'},
+  { id: 'b', label: 'B'},
+  { id: 'c', label: 'C'},
+  { id: 'd', label: 'D'},
+  { id: 't', label: 'T'}
+]);
+
+edges = new vis.DataSet();
+edges.add([
+  { id: "0", from:"s", to:"a", arrows: "to", capacity:20, fill_capacity:0, label:"0/20", color: { color: "#2b7ce9" }, residual: false },
+  { id: "1", from:"s", to:"c", arrows: "to", capacity:30, fill_capacity:0, label:"0/30", color: { color: "#2b7ce9" }, residual: false },
+  { id: "2", from:"a", to:"b", arrows: "to", capacity:10, fill_capacity:0, label:"0/10", color: { color: "#2b7ce9" }, residual: false },
+  { id: "3", from:"a", to:"d", arrows: "to", capacity:20, fill_capacity:0, label:"0/20", color: { color: "#2b7ce9" }, residual: false },
+  { id: "4", from:"b", to:"t", arrows: "to", capacity:15, fill_capacity:0, label:"0/15", color: { color: "#2b7ce9" }, residual: false },
+  { id: "5", from:"c", to:"b", arrows: "to", capacity:20, fill_capacity:0, label:"0/20", color: { color: "#2b7ce9" }, residual: false },
+  { id: "6", from:"d", to:"t", arrows: "to", capacity:30, fill_capacity:0, label:"0/30", color: { color: "#2b7ce9" }, residual: false }
+]);
+// console.log(edges._data);
 
 function saveGraph() {
 
@@ -90,30 +112,6 @@ function loadGraph() {
   load_paths();
 }
 
-// create an array with nodes
-nodes = new vis.DataSet();
-
-nodes.add([
-  { id: 's', label: 'S'/*, color: { background: "#54b4eb" }, font: { color: "#fff" } */},
-  { id: 'a', label: 'A'},
-  { id: 'b', label: 'B'},
-  { id: 'c', label: 'C'},
-  { id: 'd', label: 'D'},
-  { id: 't', label: 'T'}
-]);
-
-edges = new vis.DataSet();
-edges.add([
-  { id: "0", from:"s", to:"a", arrows: "to", capacity:20, fill_capacity:0, label:"0/20", color: { color: "#2b7ce9" }, residual: false },
-  { id: "1", from:"s", to:"c", arrows: "to", capacity:30, fill_capacity:0, label:"0/30", color: { color: "#2b7ce9" }, residual: false },
-  { id: "2", from:"a", to:"b", arrows: "to", capacity:10, fill_capacity:0, label:"0/10", color: { color: "#2b7ce9" }, residual: false },
-  { id: "3", from:"a", to:"d", arrows: "to", capacity:20, fill_capacity:0, label:"0/20", color: { color: "#2b7ce9" }, residual: false },
-  { id: "4", from:"b", to:"t", arrows: "to", capacity:15, fill_capacity:0, label:"0/15", color: { color: "#2b7ce9" }, residual: false },
-  { id: "5", from:"c", to:"b", arrows: "to", capacity:20, fill_capacity:0, label:"0/20", color: { color: "#2b7ce9" }, residual: false },
-  { id: "6", from:"d", to:"t", arrows: "to", capacity:30, fill_capacity:0, label:"0/30", color: { color: "#2b7ce9" }, residual: false }
-]);
-// console.log(edges._data);
-
 function load_paths() {
   let src = "s";
   let dst = "t";
@@ -123,9 +121,9 @@ function load_paths() {
 
   for (let i = 0; i < paths.length; i++) {
     if (getMaxFlow(paths[i].split(",")) > 0)
-      paths_html += `- ${paths[i]} <button class="btn btn-xs btn-primary" OnClick="applyPath('${paths[i]}')" id="sabt"><i class="fas fa-arrow-circle-down"></i></button><br>\n`;
+      paths_html += `- <button class="btn btn-xs btn-primary" OnClick="applyPath('${paths[i]}')" id="sabt"><i class="fas fa-arrow-circle-down"></i></button> ${paths[i]} (${ getMaxFlow( paths[i].split(",") ) }) <br>`;
     else
-      paths_html += `- ${paths[i]} <button class="btn btn-xs btn-success" id="sabt"><i class="fas fa-check"></i></button><br>\n`;
+      paths_html += `- <button class="btn btn-xs btn-success" id="sabt"><i class="fas fa-check"></i></button> ${paths[i]}<br>`;
   }
 
   if (paths_html == "")
@@ -355,6 +353,7 @@ function getMaxFlow(path) {
 }
 
 function updateEdges(graph, f) {
+
   for (var i in graph) {
 
     var c = "#2b7ce9";
@@ -369,8 +368,10 @@ function updateEdges(graph, f) {
       edges.update({
         id: graph[i].id,
         from: graph[i].from,
-        arrows: graph[i].arrows,
         to: graph[i].to,
+        arrows: graph[i].arrows,
+        capacity: graph[i].capacity,
+        fill_capacity: graph[i].fill_capacity,
         label: graph[i].label,
         color: { color: c },
         residual: graph[i].residual
@@ -382,6 +383,8 @@ function updateEdges(graph, f) {
 }
 
 function applyPath(input) {
+  pathsButtons("disable");
+
   // parsing input
   input = input.replace("(", "");
   input = input.replace(")", "");
@@ -429,7 +432,8 @@ function applyPath(input) {
     $("#stepbystep_").prop("disabled", true);
   }
 
-  var _edges = edges._data;
+  var _edges = jQuery.extend(true, {}, edges._data);
+  // var _edges = edges._data;
 
   if (step)
     steps.push(jQuery.extend(true, {}, _edges));
@@ -441,6 +445,8 @@ function applyPath(input) {
         from: _edges[j].from,
         to: _edges[j].to,
         label: _edges[j].label,
+        capacity: _edges[j].capacity,
+        fill_capacity: _edges[j].fill_capacity,
         color: { color: (_edges[j].residual ? "#4caf50" : "#2b7ce9") },
         residual: _edges[j].residual
       });
@@ -450,11 +456,38 @@ function applyPath(input) {
   }
 
   for (var i = 0; i < path.length-1; i++) {
+    var check_r_exist = false, counter = 0;
     for (var j in _edges) {
 
       if (_edges[j].from == path[i] && _edges[j].to == path[i+1]) {
         _edges[j].fill_capacity += maxFlow;
         _edges[j].label = _edges[j].fill_capacity + "/" + _edges[j].capacity;
+
+        if (_edges[j].fill_capacity > 0) {
+
+          if (!check_r_exist) {
+            for (let k in _edges)
+              if (_edges[k].from == path[i+1] && _edges[k].to == path[i]) {
+                check_r_exist = true;
+                break;
+              }
+
+            if (!check_r_exist) {
+              _edges[parseInt(Object.keys(_edges).length) + counter] = {
+                id: "" + (parseInt(Object.keys(_edges).length) + counter),
+                from: _edges[j].to,
+                to: _edges[j].from,
+                arrows: "to",
+                capacity: _edges[j].fill_capacity,
+                fill_capacity: 0,
+                label: "0/" + _edges[j].fill_capacity,
+                color: { color: "#4caf50" },
+                residual: true
+              };
+              counter++;
+            }
+          }
+        }
 
         if (!step) {
           try {
@@ -462,6 +495,8 @@ function applyPath(input) {
               id: _edges[j].id,
               from: _edges[j].from,
               to: _edges[j].to,
+              capacity: _edges[j].capacity,
+              fill_capacity: _edges[j].fill_capacity,
               label: _edges[j].label,
               color: { color: "#dd2c00" }
             });
@@ -481,7 +516,10 @@ function applyPath(input) {
   max_flow += maxFlow;
   $("#maxflow").html(max_flow);
 
-  load_paths();
+  if (!step) {
+    viewResidualNetwork();
+    load_paths();
+  }
 }
 
 function viewResidualNetwork() {
@@ -518,7 +556,6 @@ function viewResidualNetwork() {
 
   edges.add(residual_edges);
   updateEdges(edges._data);
-  load_paths();
 }
 
 // Steps functions
@@ -545,6 +582,17 @@ function next() {
 
 function back() {
   idx_steps--;
+
+  var lastEdge = Object.keys(edges._data).length-1;
+  if (edges._data[lastEdge].residual) {
+    try {
+      edges.remove({
+        id: lastEdge
+      });
+    } catch (err) {
+      alert(err);
+    }
+  }
 
   if (idx_steps == 0) {
     $("#next").hide();
@@ -576,4 +624,14 @@ function finish() {
 
   $("#back").hide();
   $("#finish").hide();
+
+  pathsButtons("enable");
+  load_paths();
+}
+
+function pathsButtons(enable_disable) {
+  enable_disable = (enable_disable == "enable" ? true : false);
+  var buttons = document.getElementById("list-paths").getElementsByTagName("button");
+  for (let i = 0; i < buttons.length; i++)
+    buttons[i].disabled = !enable_disable;
 }
