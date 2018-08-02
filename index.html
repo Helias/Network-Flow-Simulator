@@ -55,65 +55,54 @@
 
         <div class="container">
 
-
-          <div class="row">
-            <div class="col-6">
-
-                <small>Insert path:</small>
-                  <br>
-                  <input type="text" id="ap">
-                </label>
-
-                <button OnClick="applyPath(document.getElementById('ap').value)" class="btn btn-primary" id="apply_path">Apply Path</button>
-
-                <br>
-
-                <label>
-                  <input type="checkbox" id="stepbystep" OnChange="$('#stepbystep_').prop('checked', this.checked)"> Step by step
-                </label>
-
-                <br>
-                <br>
-
-                <h2>Flow: <b id="maxflow">0</b></h2>
-                <!-- <button class="btn btn-success" OnClick="viewResidualNetwork()">Show residual network</button> -->
-
-                <br>
-                <br>
-
-            </div>
-
-            <div class="col-3">
-              <button class="btn btn-success" id="start"  OnClick="start()">Start</button>
-              <button class="btn btn-info"    id="back"   OnClick="back()">Back</button>
-              <button class="btn btn-primary" id="next"   OnClick="next()">Next</button>
-              <button class="btn btn-danger"  id="finish" OnClick="finish()">Finish</button>
-
-              <br>
-              <br>
-
-              <h2 id="c_p"></h2>
-              <h2 class="text-danger" id="error"></h2>
-            </div>
-
-            <div class="col-3">
-
-              <div class="card border-primary mb-3">
-                <div class="card-header">Paths</div>
-                <div class="card-body">
-                  <label>
-                    <input type="checkbox" id="stepbystep_" OnChange="$('#stepbystep').prop('checked', this.checked)"> Step by step
-                  </label>
-                  <p class="card-text" id="list-paths"></p>
-                  <!-- - (s,c,b,a,d,t) <button class="btn btn-xs btn-primary" OnClick="applyPath('(s,c,b,a,d,t)')" id="scbadt"><i class="fas fa-arrow-circle-down"></i></button><br> -->
-                </div>
-              </div>
-
-            </div>
-          </div>
-
           <div class="row">
             <div class="col-9">
+
+              <div class="row">
+                <div class="col-9">
+
+                    <small>Insert path:</small>
+                      <br>
+                      <input type="text" id="ap">
+                    </label>
+
+                    <button OnClick="applyPath(document.getElementById('ap').value)" class="btn btn-primary" id="apply_path">Apply Path</button>
+
+                    <br>
+
+                    <label>
+                      <input type="checkbox" id="stepbystep" OnChange="$('#stepbystep_').prop('checked', this.checked)"> Step by step
+                    </label>
+
+                    <br>
+                    <br>
+
+                    <h2>Flow: <b id="maxflow">0</b></h2>
+                    <!-- <button class="btn btn-success" OnClick="viewResidualNetwork()">Show residual network</button> -->
+                    <br>
+                    Source:
+                    <input type="text" value="s" id="source" style="width: 50px">
+                    Destination:
+                    <input type="text" value="t" id="dest" style="width: 50px">
+                    &nbsp;&nbsp;
+                    <button class="btn btn-success" OnClick="updateSourceDest()">Update</button>
+                    <br>
+                    <br>
+                </div>
+
+                <div class="col-3">
+                  <button class="btn btn-success" id="start"  OnClick="start()">Start</button>
+                  <button class="btn btn-info"    id="back"   OnClick="back()">Back</button>
+                  <button class="btn btn-primary" id="next"   OnClick="next()">Next</button>
+                  <button class="btn btn-danger"  id="finish" OnClick="finish()">Finish</button>
+
+                  <br>
+                  <br>
+
+                  <h2 id="c_p"></h2>
+                  <h2 class="text-danger" id="error"></h2>
+                </div>
+              </div>
 
               <div id="network-popUp" class="network-popup">
                 <span id="operation">node</span> <br>
@@ -146,17 +135,14 @@
             </div>
 
             <div class="col-3 text-center">
-              <br>
-              <br>
-
-              <h2>Load/Save Graph</h2>
+              <h4>Load/Save Graph</h4>
               <button class="btn btn-primary" OnClick="document.getElementById('load-file').click();">Load Graph</button>
               <input type="file" id="load-file" OnChange="readTextFile(this)" style="display: none">
 
               <br>
               <br>
 
-              Graph Name:
+              <small>Graph Name:</small>
               <input type="text" value="myGraph" id="graph-name">
               <br>
               <br>
@@ -177,12 +163,33 @@
                 </div>
               </div>
 
+              <br>
+              <br>
+              <p></p>
+
+              <div class="card border-primary mb-3">
+                <div class="card-header"></div>
+                <div class="card-body">
+                  <label>
+                    <input type="checkbox" id="stepbystep_" OnChange="$('#stepbystep').prop('checked', this.checked)"> Step by step
+                  </label>
+                  <p class="card-text" id="list-paths"></p>
+                </div>
+              </div>
+
             </div>
           </div>
 
         </div>
 
     </div>
+
+    <br>
+    <footer class="navbar navbar-expand-lg navbar-dark bg-primary">
+      <div class="container">
+        <b class="text-secondary">Coded By <a href="https://github.com/Helias" class="text-secondary">Stefano Borzì</a></b>
+      </div>
+    </footer>
 
   </body>
 

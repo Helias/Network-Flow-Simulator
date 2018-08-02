@@ -4,8 +4,14 @@ var nodes, edges, network, max_flow = 0, paths = [], edges_ref = {}, path = [], 
 var steps = [], step = false, idx_steps = 0;
 
 var graph = {}; // to load graph
+var source = "s", dest = "t";
+var currentMousePos = { x: -1, y: -1 };
 
 $(document).ready(function() {
+
+  let h = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
+  let offset = $("#network").offset();
+  $("#network").height(h - offset.top - 75);
 
   $("#c_p").hide();
   $("#error").hide();
@@ -19,14 +25,19 @@ $(document).ready(function() {
   load_paths();
 });
 
-var currentMousePos = { x: -1, y: -1 };
 $(document).mousemove(function(event) {
-    var canvas = document.getElementsByTagName("canvas")[0];
+    let canvas = document.getElementsByTagName("canvas")[0];
     if (canvas != null) {
       let rect = canvas.getBoundingClientRect();
       currentMousePos.x = event.clientX - rect.left;
       currentMousePos.y = event.clientY - rect.top;
     }
+});
+
+$(window).resize(function() {
+  let h = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
+  let offset = $("#network").offset();
+  $("#network").height(h - offset.top - 75);
 });
 
 // create an array with nodes
@@ -54,9 +65,9 @@ edges.add([
 
 function saveGraph() {
 
-  var tmp_edges = edges._data;
+  let tmp_edges = edges._data;
 
-  for (var i in tmp_edges) {
+  for (let i in tmp_edges) {
     if (tmp_edges[i].residual)
       tmp_edges[i].color.color = "#4caf50";
     else
@@ -69,7 +80,7 @@ function saveGraph() {
 }
 
 function readTextFile(input) {
-  var fReader = new FileReader();
+  let fReader = new FileReader();
   fReader.readAsDataURL(input.files[0]);
   fReader.onloadend = function(event) {
     graph = event.target.result;
@@ -81,11 +92,11 @@ function readTextFile(input) {
 }
 
 function download(data, filename, type) {
-    var file = new Blob([data], {type: type});
+    let file = new Blob([data], {type: type});
     if (window.navigator.msSaveOrOpenBlob) // IE10+
         window.navigator.msSaveOrOpenBlob(file, filename);
     else { // Others
-        var a = document.createElement("a"),
+        let a = document.createElement("a"),
                 url = URL.createObjectURL(file);
         a.href = url;
         a.download = filename;
@@ -112,12 +123,16 @@ function loadGraph() {
   load_paths();
 }
 
-function load_paths() {
-  let src = "s";
-  let dst = "t";
-  paths = getEdges(src, dst);
+// function updateSourceDest() {
+//   source = $("source").val();
+//   dest = $("dest").val();
+//   load_paths();
+// }
 
-  var paths_html = "";
+function load_paths() {
+  paths = getEdges(source, dest);
+
+  let paths_html = "";
 
   for (let i = 0; i < paths.length; i++) {
     if (getMaxFlow(paths[i].split(",")) > 0)
@@ -164,13 +179,13 @@ function saveDataEdge(data, callback) {
 
 function draw() {
   // create a network
-  var container = document.getElementById('network');
-  var data = {
+  let container = document.getElementById('network');
+  let data = {
     nodes: nodes,
     edges: edges
   };
 
-  var options = {
+  let options = {
     layout: { randomSeed: 2 }, // just to make sure the layout is the same
     locale: "en",
     manipulation: {
@@ -195,12 +210,9 @@ function draw() {
         document.getElementById('network-popUp').style.display = 'block';
       },
       addEdge: function (data, callback) {
-        if (data.from == data.to) {
-          var r = confirm("Do you want to connect the node to itself?");
-          if (r == true) {
-            callback(data);
-          }
-        }
+        if (data.from == data.to)
+          callback(data);
+
         data.id = (Object.keys(edges._data).length).toString();
         data.fill_capacity = 0;
         data.color = { color: "#2b7ce9" };
@@ -223,22 +235,22 @@ function draw() {
 
 // dfs recursive
 function get_path(input, dst, current_path) {
-  var res = "";
+  let res = "";
 
   if (edges_ref[input].to != null) {
 
     if (edges_ref[input].to.length > 1) {
 
-      var multi = [];
+      let multi = [];
 
-      for (var i in edges_ref[input].to) {
+      for (let i in edges_ref[input].to) {
 
         if (edges_ref[input].to[i] != dst) {
 
           // check for cycle
-          var tmp_c = current_path.split(",");
+          let tmp_c = current_path.split(",");
 
-          var cycle = false;
+          let cycle = false;
           for (let j in tmp_c) {
             if (edges_ref[input].to[i] == tmp_c[j]) {
               cycle = true;
@@ -267,9 +279,9 @@ function get_path(input, dst, current_path) {
       if (edges_ref[input].to[0] != dst) {
 
         // check for cycle
-        var tmp_c = current_path.split(",");
+        let tmp_c = current_path.split(",");
         for (let j in tmp_c)
-          if (edges_ref[input].to[i] == tmp_c[j])
+          if (edges_ref[input].to[0] == tmp_c[j])
             return "cycle";
 
         res = get_path(edges_ref[input].to[0], dst, current_path + "," + input);
@@ -298,7 +310,7 @@ function get_path(input, dst, current_path) {
 function getEdges(s, t) {
 
   edges_ref = {};
-  var _edges = edges._data;
+  let _edges = edges._data;
 
   // fill edges_ref
   for (let i in _edges) {
@@ -312,14 +324,14 @@ function getEdges(s, t) {
   }
   // console.log(edges_ref);
 
-  var tmp_paths = get_path(s, t, s);
+  let tmp_paths = get_path(s, t, s);
 
   if (!Array.isArray(tmp_paths))
     tmp_paths = [s + "," + tmp_paths];
 
-  var _paths = [];
+  let _paths = [];
 
-  for (var i in tmp_paths) {
+  for (let i in tmp_paths) {
     if (tmp_paths[i].substr(tmp_paths[i].length -1) == t) {
       tmp_paths[i] = s + "," + tmp_paths[i];
       _paths.push(tmp_paths[i]);
@@ -332,11 +344,11 @@ function getEdges(s, t) {
 // get max flow in path
 function getMaxFlow(path) {
 
-  var maxFlow = Number.MAX_VALUE;
-  var _edges = edges._data;
+  let maxFlow = Number.MAX_VALUE;
+  let _edges = edges._data;
 
-  for (var i = 0; i < path.length-1; i++) {
-    for (var j in _edges) {
+  for (let i = 0; i < path.length-1; i++) {
+    for (let j in _edges) {
 
       if (_edges[j].from == path[i] && _edges[j].to == path[i+1]) {
         maxFlow = Math.min(maxFlow, _edges[j].capacity - _edges[j].fill_capacity);
@@ -354,9 +366,9 @@ function getMaxFlow(path) {
 
 function updateEdges(graph, f) {
 
-  for (var i in graph) {
+  for (let i in graph) {
 
-    var c = "#2b7ce9";
+    let c = "#2b7ce9";
 
     if (graph[i].residual)
       c = "#4caf50";
@@ -377,7 +389,7 @@ function updateEdges(graph, f) {
         residual: graph[i].residual
       });
     } catch (err) {
-      alert(err);
+      console.log(err);
     }
   }
 }
@@ -393,7 +405,7 @@ function applyPath(input) {
   path = input.split(",");
 
   // checking if the path exists
-  var available = false;
+  let available = false;
   for (let i in paths) {
     if (paths[i] == input) {
       available = true;
@@ -408,7 +420,7 @@ function applyPath(input) {
     return;
   }
 
-  var maxFlow = getMaxFlow(path);
+  let maxFlow = getMaxFlow(path);
 
   if (maxFlow == 0) {
     $("#c_p").hide();
@@ -432,13 +444,12 @@ function applyPath(input) {
     $("#stepbystep_").prop("disabled", true);
   }
 
-  var _edges = jQuery.extend(true, {}, edges._data);
-  // var _edges = edges._data;
+  let _edges = jQuery.extend(true, {}, edges._data);
 
   if (step)
     steps.push(jQuery.extend(true, {}, _edges));
 
-  for (var j in _edges) {
+  for (let j in _edges) {
     try {
       edges.update({
         id: _edges[j].id,
@@ -451,13 +462,13 @@ function applyPath(input) {
         residual: _edges[j].residual
       });
     } catch (err) {
-      alert(err);
+      console.log(err);
     }
   }
 
-  for (var i = 0; i < path.length-1; i++) {
-    var check_r_exist = false, counter = 0;
-    for (var j in _edges) {
+  for (let i = 0; i < path.length-1; i++) {
+    let check_r_exist = false, counter = 0;
+    for (let j in _edges) {
 
       if (_edges[j].from == path[i] && _edges[j].to == path[i+1]) {
         _edges[j].fill_capacity += maxFlow;
@@ -501,7 +512,7 @@ function applyPath(input) {
               color: { color: "#dd2c00" }
             });
           } catch (err) {
-            alert(err);
+            console.log(err);
           }
         }
         else
@@ -526,7 +537,7 @@ function viewResidualNetwork() {
   edges_network = jQuery.extend(true, {}, edges._data);
   residual_edges = [];
 
-  var check_r_exist, counter = 0;
+  let check_r_exist, counter = 0;
 
   for (let i in edges_network) {
     if (edges_network[i].fill_capacity > 0) {
@@ -583,14 +594,14 @@ function next() {
 function back() {
   idx_steps--;
 
-  var lastEdge = Object.keys(edges._data).length-1;
+  let lastEdge = Object.keys(edges._data).length-1;
   if (edges._data[lastEdge].residual) {
     try {
       edges.remove({
         id: lastEdge
       });
     } catch (err) {
-      alert(err);
+      console.log(err);
     }
   }
 
@@ -631,7 +642,7 @@ function finish() {
 
 function pathsButtons(enable_disable) {
   enable_disable = (enable_disable == "enable" ? true : false);
-  var buttons = document.getElementById("list-paths").getElementsByTagName("button");
+  let buttons = document.getElementById("list-paths").getElementsByTagName("button");
   for (let i = 0; i < buttons.length; i++)
     buttons[i].disabled = !enable_disable;
 }
