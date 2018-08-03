@@ -17,7 +17,6 @@
     <script src="lib/js/popper.min.js"></script>
     <script src="lib/js/bootstrap.min.js"></script>
     <script src="lib/js/fontawesome.js"></script>
-    <script src="core_graphs.js"></script>
     <script src="core.js"></script>
   </head>
   <body>
@@ -33,18 +32,15 @@
               <span class="navbar-toggler-icon"></span>
             </button>
 
-            <div class="collapse navbar-collapse" id="navbarColor01">
-              <ul class="navbar-nav mr-auto">
+            <div class="collapse navbar-collapse">
+              <ul class="navbar-nav ml-auto">
                 <li class="nav-item active">
-                  <!-- <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a> -->
+                  <a href="https://github.com/Helias/Network-Flow-Simulator" class="navbar-brand">
+                    <em class="fab fa-github"></em>
+                    Source Code
+                  </a>
                 </li>
               </ul>
-              <form class="form-inline my-2 my-lg-0">
-                <a href="https://github.com/Helias/Network-Flow-Simulator" class="navbar-brand">
-                  <i class="fab fa-github"></i>
-                  Source Code
-                </a>
-              </form>
             </div>
 
           </div>
@@ -77,8 +73,7 @@
                     <br>
                     <br>
 
-                    <h2>Flow: <b id="maxflow">0</b></h2>
-                    <!-- <button class="btn btn-success" OnClick="viewResidualNetwork()">Show residual network</button> -->
+                    <h2>Flow: <strong id="maxflow">0</strong></h2>
                     <br>
                     Source:
                     <input type="text" value="s" id="source" style="width: 50px">
@@ -187,7 +182,7 @@
     <br>
     <footer class="navbar navbar-expand-lg navbar-dark bg-primary">
       <div class="container">
-        <b class="text-secondary">Coded By <a href="https://github.com/Helias" class="text-secondary">Stefano Borzì</a></b>
+        <strong class="text-secondary">Coded By <a href="https://github.com/Helias" class="text-secondary">Stefano Borzì</a></strong>
       </div>
     </footer>
 
