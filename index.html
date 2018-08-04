@@ -59,7 +59,7 @@
 
                     <small>Insert path:</small>
                       <br>
-                      <input type="text" id="ap">
+                      <input type="text" id="ap" placeholder="s,a,b,t">
                     </label>
 
                     <button OnClick="applyPath(document.getElementById('ap').value)" class="btn btn-primary" id="apply_path">Apply Path</button>
@@ -162,12 +162,23 @@
               <br>
               <p></p>
 
+              <label>
+                <em class="fa fa-check text-success" style="font-size: 20px" id="p_on"></em>
+                <em class="fa fa-times text-danger" style="font-size: 20px; display: none" id="p_off"></em>
+                &nbsp; &nbsp;
+                <button class="btn btn-success btn-sm" OnClick="togglePhysics()">Physics</button>
+              </label>
+
+              <br>
+              <br>
+
               <div class="card border-primary mb-3">
                 <div class="card-header"></div>
                 <div class="card-body">
                   <label>
                     <input type="checkbox" id="stepbystep_" OnChange="$('#stepbystep').prop('checked', this.checked)"> Step by step
                   </label>
+
                   <p class="card-text" id="list-paths"></p>
                 </div>
               </div>
