@@ -1,11 +1,64 @@
-var nodes, edges, network, max_flow = 0, paths = [], edges_ref = {}, path = [], edges_network, residual_edges;
+var nodes, edges, network, max_flow = 0, paths = [], edges_ref = {}, path = [], edges_network, residual_edges, r_graph = [];
 
 // steps variables
 var steps = [], step = false, idx_steps = 0;
 
-var graph = {}; // to load graph
 var source = "s", dest = "t";
 var currentMousePos = { x: -1, y: -1 };
+
+var physics = true;
+
+var options = {
+  layout: { randomSeed: 2 }, // just to make sure the layout is the same
+  locale: "en",
+  edges: {
+    smooth: true
+  },
+  physics: {
+    enabled: physics,
+    solver: "repulsion"
+  },
+  manipulation: {
+    addNode: function (data, callback) {
+      $("#network-popUp").css('top', getMousePos()["y"]+100 + "px");
+      $("#network-popUp").css('left', getMousePos()["x"]-150 + "px");
+
+      $('#operation').html("Add Node");
+      $('#node-label').val(data.label);
+      document.getElementById('saveButton').onclick = saveData.bind(this, data, callback);
+      document.getElementById('cancelButton').onclick = clearPopUp.bind();
+      $('#network-popUp').show();
+    },
+    editNode: function (data, callback) {
+      $("#network-popUp").css('top', getMousePos()["y"]+100 + "px");
+      $("#network-popUp").css('left', getMousePos()["x"]-150 + "px");
+
+      $('#operation').html("Edit Node");
+      $('#node-label').val(data.label);
+      document.getElementById('saveButton').onclick = saveData.bind(this, data, callback);
+      document.getElementById('cancelButton').onclick = cancelEdit.bind(this,callback);
+      $('#network-popUp').show();
+    },
+    addEdge: function (data, callback) {
+      if (data.from == data.to)
+        callback(data);
+
+      data.id = (Object.keys(edges._data).length).toString();
+      data.fill_capacity = 0;
+      data.color = { color: "#2b7ce9" };
+      data.arrows = "to";
+      data.residual = false;
+
+      $("#network-popUp-edge").css('top', getMousePos()["y"]+100 + "px");
+      $("#network-popUp-edge").css('left', getMousePos()["x"]-150 + "px");
+
+      $('#operation-edge').html("Add Edge");
+      document.getElementById('saveButton-edge').onclick = saveDataEdge.bind(this, data, callback, true);
+      document.getElementById('cancelButton-edge').onclick = clearPopUp.bind();
+      $('#network-popUp-edge').show();
+    }
+  }
+};
 
 $(document).ready(function() {
 
@@ -21,17 +74,19 @@ $(document).ready(function() {
   $("#next").hide();
   $("#finish").hide();
 
-  draw();
+  r_graph = [jQuery.extend(true, {}, nodes._data), jQuery.extend(true, {}, edges._data)];
+  draw(nodes, edges);
+  updateSourceDest();
   load_paths();
 });
 
 $(document).mousemove(function(event) {
-    let canvas = document.getElementsByTagName("canvas")[0];
-    if (canvas != null) {
-      let rect = canvas.getBoundingClientRect();
-      currentMousePos.x = event.clientX - rect.left;
-      currentMousePos.y = event.clientY - rect.top;
-    }
+  let canvas = document.getElementsByTagName("canvas")[0];
+  if (canvas != null) {
+    let rect = canvas.getBoundingClientRect();
+    currentMousePos.x = event.clientX - rect.left;
+    currentMousePos.y = event.clientY - rect.top;
+  }
 });
 
 $(window).resize(function() {
@@ -42,26 +97,19 @@ $(window).resize(function() {
 
 // create an array with nodes
 nodes = new vis.DataSet();
-nodes.add([
-  { id: 's', label: 'S'/*, color: { background: "#54b4eb" }, font: { color: "#fff" } */},
-  { id: 'a', label: 'A'},
-  { id: 'b', label: 'B'},
-  { id: 'c', label: 'C'},
-  { id: 'd', label: 'D'},
-  { id: 't', label: 'T'}
-]);
+nodes.add(graphs[0].nodes);
 
 edges = new vis.DataSet();
-edges.add([
-  { id: "0", from:"s", to:"a", arrows: "to", capacity:20, fill_capacity:0, label:"0/20", color: { color: "#2b7ce9" }, residual: false },
-  { id: "1", from:"s", to:"c", arrows: "to", capacity:30, fill_capacity:0, label:"0/30", color: { color: "#2b7ce9" }, residual: false },
-  { id: "2", from:"a", to:"b", arrows: "to", capacity:10, fill_capacity:0, label:"0/10", color: { color: "#2b7ce9" }, residual: false },
-  { id: "3", from:"a", to:"d", arrows: "to", capacity:20, fill_capacity:0, label:"0/20", color: { color: "#2b7ce9" }, residual: false },
-  { id: "4", from:"b", to:"t", arrows: "to", capacity:15, fill_capacity:0, label:"0/15", color: { color: "#2b7ce9" }, residual: false },
-  { id: "5", from:"c", to:"b", arrows: "to", capacity:20, fill_capacity:0, label:"0/20", color: { color: "#2b7ce9" }, residual: false },
-  { id: "6", from:"d", to:"t", arrows: "to", capacity:30, fill_capacity:0, label:"0/30", color: { color: "#2b7ce9" }, residual: false }
-]);
+edges.add(graphs[0].edges);
 // console.log(edges._data);
+
+function getMousePos() {
+  return currentMousePos;
+}
+
+function deep_copy() {
+
+}
 
 function saveGraph() {
 
@@ -75,7 +123,7 @@ function saveGraph() {
   }
 
   let save = { nodes: nodes._data, edges: tmp_edges };
-  let name = document.getElementById("graph-name").value + ".json";
+  let name = $("#graph-name").val() + ".json";
   download(JSON.stringify(save), name, "json");
 }
 
@@ -83,10 +131,10 @@ function readTextFile(input) {
   let fReader = new FileReader();
   fReader.readAsDataURL(input.files[0]);
   fReader.onloadend = function(event) {
-    graph = event.target.result;
+    let graph = event.target.result;
     graph = graph.replace("data:application/json;base64,", "");
     graph = JSON.parse(atob(graph));
-    loadGraph();
+    loadGraph(graph);
     $("#saveModal").modal({ show: true });
   }
 }
@@ -109,25 +157,58 @@ function download(data, filename, type) {
     }
 }
 
-function loadGraph() {
+function loadGraph(graph) {
   nodes = new vis.DataSet();
   nodes._data = graph.nodes;
 
   edges = new vis.DataSet();
   edges._data = graph.edges;
 
+  r_graph = [jQuery.extend(true, {}, nodes._data), jQuery.extend(true, {}, edges._data)];
+
   max_flow = 0;
   $("#maxflow").html(max_flow);
 
-  draw();
+  draw(nodes, edges);
   load_paths();
 }
 
-// function updateSourceDest() {
-//   source = $("source").val();
-//   dest = $("dest").val();
-//   load_paths();
-// }
+function togglePhysics() {
+  physics = !physics;
+  network.setOptions( { physics: { enabled: physics } } );
+
+  if (physics) {
+    $("#p_off").hide();
+    $("#p_on").show();
+  }
+  else {
+    $("#p_off").show();
+    $("#p_on").hide();
+  }
+}
+
+function resetGraph() {
+  nodes = new vis.DataSet();
+  nodes._data = r_graph[0];
+
+  edges = new vis.DataSet();
+  edges._data = r_graph[1];
+
+  draw(nodes, edges);
+}
+
+function updateSourceDest() {
+  nodes.update({ id: source, color: { background: "#97c2fc" }, font: { color: "#000" } });
+  nodes.update({ id: dest, color:   { background: "#97c2fc" }, font: { color: "#000" } });
+
+  source = $("#source").val();
+  dest = $("#dest").val();
+
+  nodes.update({ id: source,  color: { background: "#73A839" }, font: { color: "#fff" } });
+  nodes.update({ id: dest,    color: { background: "#C71C22" }, font: { color: "#fff" } });
+
+  load_paths();
+}
 
 function load_paths() {
   paths = getEdges(source, dest);
@@ -152,8 +233,8 @@ function clearPopUp() {
   document.getElementById('saveButton').onclick = null;
   document.getElementById('cancelButton').onclick = null;
   document.getElementById('cancelButton-edge').onclick = null;
-  document.getElementById('network-popUp').style.display = 'none';
-  document.getElementById('network-popUp-edge').style.display = 'none';
+  $('#network-popUp').hide();
+  $('#network-popUp-edge').hide();
 }
 
 function cancelEdit(callback) {
@@ -162,8 +243,8 @@ function cancelEdit(callback) {
 }
 
 function saveData(data, callback) {
-  data.id = $("#node-label").val().toLowerCase();
-  data.label = $("#node-label").val().toUpperCase();
+  data.id = ($("#node-label").val()).toLowerCase();
+  data.label = ($("#node-label").val()).toUpperCase();
   clearPopUp();
   callback(data);
 }
@@ -177,59 +258,13 @@ function saveDataEdge(data, callback) {
   load_paths();
 }
 
-function draw() {
-  // create a network
+function draw(_nodes, _edges) {
+
   let container = document.getElementById('network');
   let data = {
-    nodes: nodes,
-    edges: edges
+    nodes: _nodes,
+    edges: _edges
   };
-
-  let options = {
-    layout: { randomSeed: 2 }, // just to make sure the layout is the same
-    locale: "en",
-    manipulation: {
-      addNode: function (data, callback) {
-        $("#network-popUp").css('top', currentMousePos.y-100 + "px");
-        $("#network-popUp").css('left', currentMousePos.x-150 + "px");
-
-        document.getElementById('operation').innerHTML = "Add Node";
-        document.getElementById('node-label').value = data.label;
-        document.getElementById('saveButton').onclick = saveData.bind(this, data, callback);
-        document.getElementById('cancelButton').onclick = clearPopUp.bind();
-        document.getElementById('network-popUp').style.display = 'block';
-      },
-      editNode: function (data, callback) {
-        $("#network-popUp").css('top', currentMousePos.y-100 + "px");
-        $("#network-popUp").css('left', currentMousePos.x-150 + "px");
-
-        document.getElementById('operation').innerHTML = "Edit Node";
-        document.getElementById('node-label').value = data.label;
-        document.getElementById('saveButton').onclick = saveData.bind(this, data, callback);
-        document.getElementById('cancelButton').onclick = cancelEdit.bind(this,callback);
-        document.getElementById('network-popUp').style.display = 'block';
-      },
-      addEdge: function (data, callback) {
-        if (data.from == data.to)
-          callback(data);
-
-        data.id = (Object.keys(edges._data).length).toString();
-        data.fill_capacity = 0;
-        data.color = { color: "#2b7ce9" };
-        data.arrows = "to";
-        data.residual = false;
-
-        $("#network-popUp-edge").css('top', currentMousePos.y-100 + "px");
-        $("#network-popUp-edge").css('left', currentMousePos.x-150 + "px");
-
-        document.getElementById('operation-edge').innerHTML = "Add Edge";
-        document.getElementById('saveButton-edge').onclick = saveDataEdge.bind(this, data, callback, true);
-        document.getElementById('cancelButton-edge').onclick = clearPopUp.bind();
-        document.getElementById('network-popUp-edge').style.display = 'block';
-      }
-    }
-  };
-
   network = new vis.Network(container, data, options);
 }
 

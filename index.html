@@ -17,6 +17,7 @@
     <script src="lib/js/popper.min.js"></script>
     <script src="lib/js/bootstrap.min.js"></script>
     <script src="lib/js/fontawesome.js"></script>
+    <script src="stored_graphs.js"></script>
     <script src="core.js"></script>
   </head>
   <body>
@@ -71,10 +72,7 @@
                     </label>
 
                     <br>
-                    <br>
 
-                    <h2>Flow: <strong id="maxflow">0</strong></h2>
-                    <br>
                     Source:
                     <input type="text" value="s" id="source" style="width: 50px">
                     Destination:
@@ -83,6 +81,8 @@
                     <button class="btn btn-success" OnClick="updateSourceDest()">Update</button>
                     <br>
                     <br>
+
+                    <h2>Flow: <strong id="maxflow">0</strong></h2>
                 </div>
 
                 <div class="col-3">
@@ -162,6 +162,13 @@
               <br>
               <p></p>
 
+              <!-- <br>
+              <select id="graphs">
+                <option value="0"></option>
+              </select>
+
+              <br> -->
+
               <label>
                 <em class="fa fa-check text-success" style="font-size: 20px" id="p_on"></em>
                 <em class="fa fa-times text-danger" style="font-size: 20px; display: none" id="p_off"></em>
@@ -182,6 +189,8 @@
                   <p class="card-text" id="list-paths"></p>
                 </div>
               </div>
+
+              <button class="btn btn-danger" OnClick="resetGraph()">Reset Graph</button>
 
             </div>
           </div>
