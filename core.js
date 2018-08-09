@@ -74,9 +74,9 @@ $(document).ready(function() {
   $("#next").hide();
   $("#finish").hide();
 
-  r_graph = [jQuery.extend(true, {}, nodes._data), jQuery.extend(true, {}, edges._data)];
+  loadGraph(graphs[0]);
+  r_graph = [deepCopy(nodes._data), deepCopy(edges._data)];
   draw(nodes, edges);
-  updateSourceDest();
   load_paths();
 });
 
@@ -95,20 +95,12 @@ $(window).resize(function() {
   $("#network").height(h - offset.top - 75);
 });
 
-// create an array with nodes
-nodes = new vis.DataSet();
-nodes.add(graphs[0].nodes);
-
-edges = new vis.DataSet();
-edges.add(graphs[0].edges);
-// console.log(edges._data);
-
 function getMousePos() {
   return currentMousePos;
 }
 
-function deep_copy() {
-
+function deepCopy(data) {
+  return jQuery.extend(true, {}, data);
 }
 
 function saveGraph() {
@@ -164,7 +156,7 @@ function loadGraph(graph) {
   edges = new vis.DataSet();
   edges._data = graph.edges;
 
-  r_graph = [jQuery.extend(true, {}, nodes._data), jQuery.extend(true, {}, edges._data)];
+  r_graph = [deepCopy(nodes._data), deepCopy(edges._data)];
 
   max_flow = 0;
   $("#maxflow").html(max_flow);
@@ -208,6 +200,12 @@ function updateSourceDest() {
   nodes.update({ id: dest,    color: { background: "#C71C22" }, font: { color: "#fff" } });
 
   load_paths();
+}
+
+function changeGraph(idx) {
+  let nds = graphs[idx].nodes;
+  let edgs = graphs[idx].edges;
+  loadGraph({ nodes: nds, edges: edgs });
 }
 
 function load_paths() {
@@ -266,6 +264,11 @@ function draw(_nodes, _edges) {
     edges: _edges
   };
   network = new vis.Network(container, data, options);
+
+  nodes = data.nodes;
+  edges = data.edges;
+
+  updateSourceDest();
 }
 
 // dfs recursive
@@ -479,10 +482,10 @@ function applyPath(input) {
     $("#stepbystep_").prop("disabled", true);
   }
 
-  let _edges = jQuery.extend(true, {}, edges._data);
+  let _edges = deepCopy(edges._data);
 
   if (step)
-    steps.push(jQuery.extend(true, {}, _edges));
+    steps.push(deepCopy(_edges));
 
   for (let j in _edges) {
     try {
@@ -551,7 +554,7 @@ function applyPath(input) {
           }
         }
         else
-          steps.push(jQuery.extend(true, {}, _edges)); // deep copy of the object
+          steps.push(deepCopy(_edges));
 
         break;
       }
@@ -569,7 +572,7 @@ function applyPath(input) {
 }
 
 function viewResidualNetwork() {
-  edges_network = jQuery.extend(true, {}, edges._data);
+  edges_network = deepCopy(edges._data);
   residual_edges = [];
 
   let check_r_exist, counter = 0;
