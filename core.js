@@ -103,6 +103,19 @@ function deepCopy(data) {
   return jQuery.extend(true, {}, data);
 }
 
+function toggleMenu(id, on_off) {
+  $("#" + id).toggle("blind", {}, 500);
+
+  if (on_off == "on") {
+    $("#" + id + "-on").hide();
+    $("#" + id + "-off").show();
+  }
+  else {
+    $("#" + id + "-on").show();
+    $("#" + id + "-off").hide();
+  }
+}
+
 function saveGraph() {
 
   let tmp_edges = edges._data;
@@ -160,6 +173,7 @@ function loadGraph(graph) {
 
   max_flow = 0;
   $("#maxflow").html(max_flow);
+  $("#graphs").val("--");
 
   draw(nodes, edges);
   load_paths();
@@ -181,31 +195,59 @@ function togglePhysics() {
 
 function resetGraph() {
   nodes = new vis.DataSet();
-  nodes._data = r_graph[0];
+  nodes._data = deepCopy(r_graph[0]);
 
   edges = new vis.DataSet();
-  edges._data = r_graph[1];
+  edges._data = deepCopy(r_graph[1]);
+
+  max_flow = 0;
+  $("#maxflow").html(max_flow);
 
   draw(nodes, edges);
-}
-
-function updateSourceDest() {
-  nodes.update({ id: source, color: { background: "#97c2fc" }, font: { color: "#000" } });
-  nodes.update({ id: dest, color:   { background: "#97c2fc" }, font: { color: "#000" } });
-
-  source = $("#source").val();
-  dest = $("#dest").val();
-
-  nodes.update({ id: source,  color: { background: "#73A839" }, font: { color: "#fff" } });
-  nodes.update({ id: dest,    color: { background: "#C71C22" }, font: { color: "#fff" } });
-
-  load_paths();
 }
 
 function changeGraph(idx) {
   let nds = graphs[idx].nodes;
   let edgs = graphs[idx].edges;
   loadGraph({ nodes: nds, edges: edgs });
+}
+
+function newGraph() {
+  $("#graphs").val("--");
+  r_graph = [];
+
+  nodes = new vis.DataSet();
+  edges = new vis.DataSet();
+
+  max_flow = 0;
+  $("#maxflow").html(max_flow);
+
+  draw(nodes, edges);
+}
+
+function updateSourceDest() {
+
+  let src = false, dst = false;
+
+  // check if source and dest nodes exist
+  for (let i in nodes._data) {
+    if (i == source)
+      src = true;
+
+    if (i == dest)
+      dst = true;
+  }
+
+  if (src) nodes.update({ id: source, color: { background: "#97c2fc" }, font: { color: "#000" } });
+  if (dst) nodes.update({ id: dest, color:   { background: "#97c2fc" }, font: { color: "#000" } });
+
+  source = $("#source").val();
+  dest = $("#dest").val();
+
+  if (src) nodes.update({ id: source,  color: { background: "#73A839" }, font: { color: "#fff" } });
+  if (dst) nodes.update({ id: dest,    color: { background: "#C71C22" }, font: { color: "#fff" } });
+
+  load_paths();
 }
 
 function load_paths() {
@@ -370,11 +412,14 @@ function getEdges(s, t) {
   let _paths = [];
 
   for (let i in tmp_paths) {
-    if (tmp_paths[i].substr(tmp_paths[i].length -1) == t) {
+    if (tmp_paths[i].substr(tmp_paths[i].length-1) == t) {
       tmp_paths[i] = s + "," + tmp_paths[i];
       _paths.push(tmp_paths[i]);
     }
   }
+
+  if (_paths.length == 1 && _paths[0].substr(_paths[0].length-1) == t)
+    return [_paths[0].substr(2, _paths[0].length)];
 
   return _paths;
 }
