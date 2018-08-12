@@ -209,6 +209,14 @@
                   </strong>
                 </div>
                 <div class="card-body" id="paths">
+                  Order:
+                  <br>
+                  <button class="btn btn-sm btn-info"    OnClick="order = 'lexicographical'; load_paths()">Lexicographical</button>
+                  <button class="btn btn-sm btn-success" OnClick="order = 'edmonds'; load_paths()">Edmonds</button>
+
+                  <br>
+                  <br>
+
                   <label>
                     <input type="checkbox" id="stepbystep_" OnChange="$('#stepbystep').prop('checked', this.checked)"> Step by step
                   </label>

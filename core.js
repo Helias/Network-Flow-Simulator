@@ -1,4 +1,4 @@
-var nodes, edges, network, max_flow = 0, paths = [], edges_ref = {}, path = [], edges_network, residual_edges, r_graph = [];
+var nodes, edges, network, max_flow = 0, paths = [], edges_ref = {}, path = [], edges_network, residual_edges, r_graph = [], order = null;
 
 // steps variables
 var steps = [], step = false, idx_steps = 0;
@@ -138,6 +138,7 @@ function readTextFile(input) {
     graph = JSON.parse(atob(graph));
     loadGraph(graph);
     $("#saveModal").modal({ show: true });
+    $('#graphs').val('--');
   }
 }
 
@@ -257,8 +258,36 @@ function updateSourceDest() {
   load_paths();
 }
 
+function orderPaths(_paths) {
+
+  if (order == "lexicographical")
+    return _paths.sort()
+
+  if (order == "edmonds") {
+    let pathFlows = [];
+
+    for (let i in _paths)
+      pathFlows.push([_paths[i], getMaxFlow(_paths[i].split(",")), _paths[i].length]);
+
+    // sort per flow (desc) and path length (asc)
+    pathFlows.sort((a, b) => {
+      let diff = b[1] - a[1];
+      return diff == 0 ? a[2] - b[2] : diff;
+    });
+
+    _paths = [];
+    for (let i in pathFlows)
+      _paths.push(pathFlows[i][0]);
+
+    return _paths;
+  }
+
+  return _paths;
+}
+
 function load_paths() {
   paths = getEdges(source, dest);
+  paths = orderPaths(paths)
 
   let paths_html = "";
 
@@ -324,7 +353,7 @@ function draw(_nodes, _edges) {
 function get_path(input, dst, current_path) {
   let res = "";
 
-  if (edges_ref[input].to != null) {
+  if (edges_ref[input] != null && edges_ref[input].to != null) {
 
     if (edges_ref[input].to.length > 1) {
 
