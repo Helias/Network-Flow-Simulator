@@ -74,10 +74,7 @@ $(document).ready(function() {
   $("#next").hide();
   $("#finish").hide();
 
-  loadGraph(graphs[0]);
-  r_graph = [deepCopy(nodes._data), deepCopy(edges._data)];
-  draw(nodes, edges);
-  load_paths();
+  loadGraph(deepCopy(graphs[0]));
 });
 
 $(document).mousemove(function(event) {
@@ -100,7 +97,7 @@ function getMousePos() {
 }
 
 function deepCopy(data) {
-  return jQuery.extend(true, {}, data);
+  return JSON.parse(JSON.stringify(data));
 }
 
 function toggleMenu(id, on_off) {
@@ -163,17 +160,19 @@ function download(data, filename, type) {
 }
 
 function loadGraph(graph) {
+  r_graph = [
+    deepCopy(graph.nodes),
+    deepCopy(graph.edges)
+  ];
+
   nodes = new vis.DataSet();
   nodes._data = graph.nodes;
 
   edges = new vis.DataSet();
   edges._data = graph.edges;
 
-  r_graph = [deepCopy(nodes._data), deepCopy(edges._data)];
-
   max_flow = 0;
   $("#maxflow").html(max_flow);
-  $("#graphs").val("--");
 
   draw(nodes, edges);
   load_paths();
@@ -194,26 +193,33 @@ function togglePhysics() {
 }
 
 function resetGraph() {
-  nodes = new vis.DataSet();
-  nodes._data = deepCopy(r_graph[0]);
-
-  edges = new vis.DataSet();
-  edges._data = deepCopy(r_graph[1]);
-
   max_flow = 0;
   $("#maxflow").html(max_flow);
 
-  draw(nodes, edges);
+  let graph = {
+    nodes: deepCopy(r_graph[0]),
+    edges: deepCopy(r_graph[1])
+  };
+
+  loadGraph(graph);
 }
 
 function changeGraph(idx) {
-  let nds = graphs[idx].nodes;
-  let edgs = graphs[idx].edges;
-  loadGraph({ nodes: nds, edges: edgs });
+  max_flow = 0;
+  $("#maxflow").html(max_flow);
+
+  let graph = {
+    nodes: deepCopy(graphs[idx].nodes),
+    edges: deepCopy(graphs[idx].edges)
+  };
+
+  loadGraph(graph);
 }
 
 function newGraph() {
   $("#graphs").val("--");
+  $("#list-paths").html("")
+
   r_graph = [];
 
   nodes = new vis.DataSet();
@@ -227,6 +233,13 @@ function newGraph() {
 
 function updateSourceDest() {
 
+  // reset nodes colors
+  for (let i in nodes._data)
+    nodes.update({ id: i, color: { background: "#97c2fc" }, font: { color: "#000" } });
+
+  source = $("#source").val();
+  dest = $("#dest").val();
+
   let src = false, dst = false;
 
   // check if source and dest nodes exist
@@ -237,12 +250,6 @@ function updateSourceDest() {
     if (i == dest)
       dst = true;
   }
-
-  if (src) nodes.update({ id: source, color: { background: "#97c2fc" }, font: { color: "#000" } });
-  if (dst) nodes.update({ id: dest, color:   { background: "#97c2fc" }, font: { color: "#000" } });
-
-  source = $("#source").val();
-  dest = $("#dest").val();
 
   if (src) nodes.update({ id: source,  color: { background: "#73A839" }, font: { color: "#fff" } });
   if (dst) nodes.update({ id: dest,    color: { background: "#C71C22" }, font: { color: "#fff" } });
@@ -418,7 +425,7 @@ function getEdges(s, t) {
     }
   }
 
-  if (_paths.length == 1 && _paths[0].substr(_paths[0].length-1) == t)
+  if (_paths.length == 1 && _paths[0].substr(2, 2) == _paths[0].substr(0, 2))
     return [_paths[0].substr(2, _paths[0].length)];
 
   return _paths;
