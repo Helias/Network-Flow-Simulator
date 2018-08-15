@@ -325,29 +325,57 @@ function saveData(data, callback, edit) {
   if (!edit) {
     data.id = ($("#node-label").val()).toLowerCase();
     data.label = ($("#node-label").val()).toUpperCase();
-    clearPopUp();
     callback(data);
-
-    load_paths();
   }
   else { // edit mode
     let new_label = ($("#node-label").val()).toLowerCase();
-    nodes._data[new_label] = {};
-    nodes._data[new_label].id = new_label;
-    nodes._data[new_label].label = new_label.toUpperCase();
-    delete nodes._data[data.id];
+
+    nodes.add([ { id: new_label, label: new_label.toUpperCase() } ]);
+
+    try { nodes.remove({ id: data.id }); }
+    catch (err) { console.log(err); }
 
     for (let i in edges._data) {
-      if (edges._data[i].from.toLowerCase() == data.id)
-        edges._data[i].from = new_label;
+      if (edges._data[i].from.toLowerCase() == data.id) {
+        try {
+          edges.update({
+            id: edges._data[i].id,
+            from: new_label,
+            to: edges._data[i].to,
+            arrows: edges._data[i].arrows,
+            capacity: edges._data[i].capacity,
+            fill_capacity: edges._data[i].fill_capacity,
+            label: edges._data[i].label,
+            color: edges._data[i].color,
+            residual: edges._data[i].residual
+          });
+        } catch (err) {
+          console.log(err);
+        }
+      }
 
-      if (edges._data[i].to == data.id)
-        edges._data[i].to = new_label;
+      if (edges._data[i].to == data.id) {
+        try {
+          edges.update({
+            id: edges._data[i].id,
+            from: edges._data[i].from,
+            to: new_label,
+            arrows: edges._data[i].arrows,
+            capacity: edges._data[i].capacity,
+            fill_capacity: edges._data[i].fill_capacity,
+            label: edges._data[i].label,
+            color: edges._data[i].color,
+            residual: edges._data[i].residual
+          });
+        } catch (err) {
+          console.log(err);
+        }
+      }
     }
-
-    clearPopUp();
-    draw(nodes, edges);
   }
+
+  clearPopUp();
+  load_paths();
 }
 
 function saveDataEdge(data, callback) {
