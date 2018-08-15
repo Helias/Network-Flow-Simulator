@@ -25,7 +25,7 @@ var options = {
 
       $('#operation').html("Add Node");
       $('#node-label').val(data.label);
-      document.getElementById('saveButton').onclick = saveData.bind(this, data, callback);
+      document.getElementById('saveButton').onclick = saveData.bind(this, data, callback, false);
       document.getElementById('cancelButton').onclick = clearPopUp.bind();
       $('#network-popUp').show();
     },
@@ -35,8 +35,8 @@ var options = {
 
       $('#operation').html("Edit Node");
       $('#node-label').val(data.label);
-      document.getElementById('saveButton').onclick = saveData.bind(this, data, callback);
-      document.getElementById('cancelButton').onclick = cancelEdit.bind(this,callback);
+      document.getElementById('saveButton').onclick = saveData.bind(this, data, callback, true);
+      document.getElementById('cancelButton').onclick = cancelEdit.bind(this, callback);
       $('#network-popUp').show();
     },
     addEdge: function (data, callback) {
@@ -56,6 +56,10 @@ var options = {
       document.getElementById('saveButton-edge').onclick = saveDataEdge.bind(this, data, callback, true);
       document.getElementById('cancelButton-edge').onclick = clearPopUp.bind();
       $('#network-popUp-edge').show();
+    },
+    editEdge: function (data, callback) {
+      callback(data);
+      load_paths();
     }
   }
 };
@@ -176,7 +180,6 @@ function loadGraph(graph) {
   $("#maxflow").html(max_flow);
 
   draw(nodes, edges);
-  load_paths();
 }
 
 function togglePhysics() {
@@ -318,11 +321,33 @@ function cancelEdit(callback) {
   callback(null);
 }
 
-function saveData(data, callback) {
-  data.id = ($("#node-label").val()).toLowerCase();
-  data.label = ($("#node-label").val()).toUpperCase();
-  clearPopUp();
-  callback(data);
+function saveData(data, callback, edit) {
+  if (!edit) {
+    data.id = ($("#node-label").val()).toLowerCase();
+    data.label = ($("#node-label").val()).toUpperCase();
+    clearPopUp();
+    callback(data);
+
+    load_paths();
+  }
+  else { // edit mode
+    let new_label = ($("#node-label").val()).toLowerCase();
+    nodes._data[new_label] = {};
+    nodes._data[new_label].id = new_label;
+    nodes._data[new_label].label = new_label.toUpperCase();
+    delete nodes._data[data.id];
+
+    for (let i in edges._data) {
+      if (edges._data[i].from.toLowerCase() == data.id)
+        edges._data[i].from = new_label;
+
+      if (edges._data[i].to == data.id)
+        edges._data[i].to = new_label;
+    }
+
+    clearPopUp();
+    draw(nodes, edges);
+  }
 }
 
 function saveDataEdge(data, callback) {
@@ -331,6 +356,7 @@ function saveDataEdge(data, callback) {
 
   clearPopUp();
   callback(data);
+
   load_paths();
 }
 
