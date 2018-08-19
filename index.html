@@ -64,7 +64,7 @@
                       <input type="text" id="ap" placeholder="s,a,b,t">
                     </label>
 
-                    <button OnClick="applyPath(document.getElementById('ap').value)" class="btn btn-primary" id="apply_path">Apply Path</button>
+                    <button OnClick="ng.applyPath(document.getElementById('ap').value)" class="btn btn-primary" id="apply_path">Apply Path</button>
 
                     <br>
 
@@ -79,7 +79,7 @@
                     Destination:
                     <input type="text" value="t" id="dest" style="width: 50px">
                     &nbsp;&nbsp;
-                    <button class="btn btn-success" OnClick="updateSourceDest()">Update</button>
+                    <button class="btn btn-success" OnClick="ng.updateSourceDest()">Update</button>
                     <br>
                     <br>
 
@@ -148,7 +148,7 @@
 
                   <br>
 
-                  <button class="btn btn-sm btn-info" OnClick="saveGraph()">Save Graph</button>
+                  <button class="btn btn-sm btn-info" OnClick="ng.saveGraph()">Save Graph</button>
                   <button class="btn btn-sm btn-primary" OnClick="document.getElementById('load-file').click();">Load Graph</button>
                 </div>
               </div>
@@ -178,7 +178,7 @@
                   </strong>
                 </div>
                 <div class="card-body" id="settings" style="display: none">
-                  <select id="graphs" OnChange="changeGraph(this.value)" class="form-control">
+                  <select id="graphs" OnChange="ng.changeGraph(this.value)" class="form-control">
                     <option value="--">--</option>
                     <option value="0" selected="selected">Graph 1</option>
                     <option value="1">Graph 2</option>
@@ -186,16 +186,16 @@
                   </select>
 
                   <br>
-                  <button class="btn btn-sm btn-success" OnClick="newGraph()"><em class="fa fa-plus"></em> New Graph</button>
+                  <button class="btn btn-sm btn-success" OnClick="ng.newGraph()"><em class="fa fa-plus"></em> New Graph</button>
 
-                  <button class="btn btn-success btn-sm" OnClick="togglePhysics()">
+                  <button class="btn btn-success btn-sm" OnClick="ng.togglePhysics()">
                     <em class="fa fa-check" id="p_on" style="font-size: 15px"></em>
                     <em class="fa fa-times" id="p_off" style="display: none; font-size: 15px"></em>
                     Physics
                   </button>
 
                   <p></p>
-                  <button class="btn btn-sm btn-danger" OnClick="resetGraph()"><em class="fa fa-sync"></em> Reset Graph</button>
+                  <button class="btn btn-sm btn-danger" OnClick="ng.resetGraph()"><em class="fa fa-sync"></em> Reset Graph</button>
                 </div>
               </div>
 
@@ -211,8 +211,8 @@
                 <div class="card-body" id="paths">
                   Order:
                   <br>
-                  <button class="btn btn-sm btn-info"    OnClick="order = 'lexicographical'; load_paths()">Lexicographical</button>
-                  <button class="btn btn-sm btn-success" OnClick="order = 'edmonds'; load_paths()">Edmonds</button>
+                  <button class="btn btn-sm btn-info"    OnClick="ng.order = 'lexicographical'; load_paths()">Lexicographical</button>
+                  <button class="btn btn-sm btn-success" OnClick="ng.order = 'edmonds'; load_paths()">Edmonds</button>
 
                   <br>
                   <br>
