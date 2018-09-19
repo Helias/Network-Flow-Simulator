@@ -37,7 +37,7 @@ var options = {
       if (data.from == data.to)
         callback(data);
 
-      data.id = (Object.keys(edges._data).length).toString();
+      data.id = (Object.keys(ng.edges._data).length).toString();
       data.fill_capacity = 0;
       data.color = { color: "#2b7ce9" };
       data.arrows = "to";
